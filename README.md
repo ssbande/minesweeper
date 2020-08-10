@@ -1,4 +1,4 @@
-# Project Title
+# Minesweeper-SB
 
 A dual player mine sweeper game. 
 
