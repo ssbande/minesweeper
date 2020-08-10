@@ -1,0 +1,20 @@
+{
+	"extends": [
+		"tslint:latest",
+		"tslint-react",
+		"tslint-eslint-rules",
+		"tslint-config-prettier"
+	],
+	"jsRules": {},
+	"rules": {
+		"no-implicit-dependencies": false,
+		"prettier": true
+	},
+	"no-shadowed-variable": false,
+	"rulesDirectory": ["tslint-plugin-prettier"],
+	"exclude": ["node_modules"],
+	"autoFixOnSave": true,
+	"linterOptions": {
+		"exclude": ["node_modules/**", "build/**", "**/*.js"]
+	}
+}
