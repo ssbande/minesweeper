@@ -66,8 +66,10 @@ There are 6 endpoints exposed to be utilised
 Typescript, Express, Jest 
 
 ###### Next Plans: 
+* Add a custom level where create API can take input of number of rows and columns
 * Refactor code to have Validators and Decorators implemented on the methods 
 * Pull out the interface / Types / Enums to a common place so that both the API and Web APP can refer to the same place.
+* To send the response in a JWT format which can then further be decided with a public key
 
 ###### Issues faced: 
 * While writing tests, mongo save document mocking was not working. Thus have skipped tests along those for future fixes
