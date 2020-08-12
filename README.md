@@ -1,4 +1,4 @@
-# Project Title
+# Minesweeper-SB
 
 A dual player mine sweeper game. 
 
@@ -70,7 +70,6 @@ Typescript, Express, Jest
 * Refactor code to have Validators and Decorators implemented on the methods 
 * Pull out the interface / Types / Enums to a common place so that both the API and Web APP can refer to the same place.
 * To send the response in a JWT format which can then further be decided with a public key
-
 
 ###### Issues faced: 
 * While writing tests, mongo save document mocking was not working. Thus have skipped tests along those for future fixes
