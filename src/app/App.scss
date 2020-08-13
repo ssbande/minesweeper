@@ -118,3 +118,86 @@
   font-size: 1.2rem;
   color: black
 }
+
+
+.infoContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.bombInfo {
+  line-height: 35px;
+  font-size: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+.FieldCell {
+  @include borders;
+  @include buttons;
+  border-width: 4px;
+  align-items: center;
+  display: flex;
+  font-weight: bold;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+  cursor: pointer;
+  transition: all .2s ease-in-out;
+
+  &:hover {
+    transform: scale(1.2);
+    background: white;
+    border-color: #ececec;
+  }
+
+  &.dug {
+    border-color: whitesmoke;
+    border-width: 1px;
+    background: #d0d0d0;
+    border-color: #d0d0d0;
+    @include borders(#e1e1e1, #ececec);
+  }
+
+  &.dug:hover {
+    transform: none;
+    
+  }
+
+  &.red {
+    background: red;
+  }
+
+  span {
+    font-size: 12px;
+    margin-left: 2px;
+  }
+
+  &.value-1 {
+    color: blue;
+  }
+  &.value-2 {
+    color: green;
+  }
+  &.value-3 {
+    color: red;
+  }
+  &.value-4 {
+    color: purple;
+  }
+  &.value-5 {
+    color: maroon;
+  }
+  &.value-6 {
+    color: turquoise;
+  }
+  &.value-7 {
+    color: black;
+  }
+  &.value-8 {
+    color: gray;
+  }
+}

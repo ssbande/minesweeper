@@ -233,8 +233,9 @@ export const makeMove = async (req: Request, res: Response) => {
 						.status(401)
 						.send(errorResponse(GameScene.CANT_ALTER_OTHERS_FLAG))
 				}
+			} else if(currentCell.state === CellState.DUG) {
+				return res.status(400).send(errorResponse(GameScene.DIG_DUG_CELL))
 			} else {
-
 				// If the player clicked on a bomb
 				if (currentCell.value === CellValue.BOMB) {
 					currentCell.state = CellState.DUG

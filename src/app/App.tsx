@@ -18,7 +18,6 @@ import {
 	Face,
 } from '../utils/contracts'
 import { Dispatch, bindActionCreators } from 'redux'
-import NumberDisplay from '../game/NumberDisplay'
 import Button from '../game/Button'
 import ErrorMessage from '../game/ErrorMessage'
 import AppBar from '@material-ui/core/AppBar'
@@ -27,7 +26,7 @@ import Typography from '@material-ui/core/Typography'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import Container from '@material-ui/core/Container'
 import Info from '../game/Info'
-import LinearProgress from '@material-ui/core/LinearProgress'
+import Field from '../game/Field'
 
 function App(props: IAppProps) {
 	const {
@@ -68,10 +67,10 @@ function App(props: IAppProps) {
 	})
 
 	useEffect(() => {
-		if (live && time < 999) {
+		if (live) {
 			const timer = setInterval(() => {
-				setTime(time + 1)
-			}, 1000)
+				setTime(time + 100)
+			}, 100)
 
 			if (game?.state === GameState.OVER) {
 				clearInterval(timer)
@@ -129,26 +128,6 @@ function App(props: IAppProps) {
 		makeMove(game.gameId, me.id, rowParam, colParam, true)
 	}
 
-	const renderCells = () => {
-		return game?.mineField?.field
-			? game.mineField.field.map((row, rowIndex) =>
-					row.map((cell, colIndex) => (
-						<Button
-							col={colIndex}
-							key={`${rowIndex}-${colIndex}`}
-							onClick={handleCellClick}
-							onContext={handleCellContext}
-							red={cell.exploded}
-							row={rowIndex}
-							state={cell.state}
-							value={cell.value}
-							opponent={me.id === '0' ? game.players[1] : game.players[0]}
-						/>
-					))
-			  )
-			: null
-	}
-
 	return (
 		<Fragment>
 			<AppBar position="static">
@@ -161,64 +140,34 @@ function App(props: IAppProps) {
 			<ErrorMessage error={error} removeErrorFromStore={removeErrorFromStore} />
 			<CssBaseline />
 			{!!game.gameId && (
-				<Container maxWidth="sm">
-					<Typography
-						component="div"
-						style={{
-							padding: '20px',
-							backgroundColor: '#cfe8fc',
-							height: '100vh',
-						}}
-					>
+				<Container maxWidth="md">
+					<div style={{
+						padding: '20px',
+						backgroundColor: '#cfe8fc',
+						minHeight: '100vh',
+					}}>
 						<Info
 							gameId={game.gameId}
 							player={me}
 							state={game.state}
 							judge={game.judge}
 							winner={winner}
+							time={time}
+							bombs={game.mineField.noOfBombs - game.totalMarkedFlags}
 						/>
-						<div style={{ paddingLeft: '50px', paddingRight: '50px' }}>
-							{game?.state === 'PREPARING' && (
-								<div>
-									<p>Waiting for other component to join ...</p>
-									<LinearProgress />
-								</div>
-							)}
-							<div className="mineFieldContainer">
-								<div className="App">
-									<div className="Header">
-										<NumberDisplay
-											value={game.mineField.noOfBombs - game.totalMarkedFlags}
-										/>
-										<div className="Face" onClick={handleFaceClick}>
-											<span role="img" aria-label="face">
-												{face}
-											</span>
-										</div>
-										<NumberDisplay value={time} />
-									</div>
-									<div className="Body">{renderCells()}</div>
-								</div>
-							</div>
+						<div style={{ padding: '50px' }}>
+							<Field
+								game={game}
+								player={me}
+								handleCellClick={handleCellClick}
+								handleCellContext={handleCellContext}
+							/>
 						</div>
-					</Typography>
+					</div>
 				</Container>
 			)}
 		</Fragment>
 	)
-
-	// 			<div className="Header">
-	// 				<NumberDisplay value={game.mineField.noOfBombs - game.totalMarkedFlags} />
-	// 				<div className="Face" onClick={handleFaceClick}>
-	// 					<span role="img" aria-label="face">
-	// 						{face}
-	// 					</span>
-	// 				</div>
-	// 				<NumberDisplay value={time} />
-	// 			</div>
-	// 			<div className="Body">{renderCells()}</div>
-	// 		</div>
-	// 	</div>
 }
 
 const actionCreators = {

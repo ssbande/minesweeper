@@ -14,7 +14,7 @@ import {
 
 export const createGame = () => (dispatch: Dispatch) => {
 	const url = resolveUri(Constants.apiEndpoints.createGame)({
-		level: 'BEGINNER',
+		level: 'DEFAULT',
 	})
 	AppUtils.executeFetch(url, { method: 'POST' })
 		.then(gameDetails =>

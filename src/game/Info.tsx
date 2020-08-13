@@ -7,7 +7,10 @@ import {
 	withStyles,
 	createStyles,
 } from '@material-ui/core/styles'
-import { IPlayer, GameState } from '../utils/contracts'
+import Divider from '@material-ui/core/Divider';
+import { IPlayer, GameState } from '../utils/contracts';
+import Bomb from '../styles/images/bomb.png';
+import AppTimer from './Timer';
 
 interface InfoProps {
 	gameId: string
@@ -15,6 +18,8 @@ interface InfoProps {
 	state: GameState
 	judge: string
 	winner: string
+	time: number
+	bombs: number
 }
 
 const StyledBadge = withStyles((theme: Theme) =>
@@ -127,38 +132,56 @@ const Info: React.FC<InfoProps> = ({
 	state,
 	judge,
 	winner,
+	time,
+	bombs
 }) => {
 	const classes = useStyles()
 	return (
-		<div className={classes.root}>
-			<StyledBadge
-				overlap="circle"
-				anchorOrigin={{
-					vertical: 'bottom',
-					horizontal: 'right',
-				}}
-				variant="dot"
-			>
-				{avataars[+player.id]}
-			</StyledBadge>
-			{!!player && (
-				<div className="playerInfo">
-					<div>Hello !</div>
-					<div>You are {player.name}</div>
-					{state === GameState.OVER && (
-						<div className="playerWinInfo">
-							{winner === player.id ? (
-								<div>You won !!!</div>
-							) : (
-								<div>You Lost</div>
-							)}
-							{judge === 'DRAW' && <div>It's a draw</div>}
-						</div>
-					)}
+		<div className='infoContainer'>
+			<div className={classes.root}>
+				<StyledBadge
+					overlap="circle"
+					anchorOrigin={{
+						vertical: 'bottom',
+						horizontal: 'right',
+					}}
+					variant="dot"
+				>
+					{avataars[+player.id]}
+				</StyledBadge>
+				{!!player && (
+					<div className="playerInfo">
+						<div>Hello !</div>
+						<div>You are {player.name}</div>
+						{state === GameState.OVER && (
+							<div className="playerWinInfo">
+								{judge === 'DRAW' && <div>It's a draw !!!</div>}
+								{judge !== 'DRAW' && <div>
+									{winner === player.id
+										? (<div>You won !!!</div>)
+										: (<div>You Lost</div>)
+									}
+								</div>}
+							</div>
+						)}
+					</div>
+				)}
+			</div>
+			<div className="playerInfo">
+				<div className="playerWinInfo">GAME INFO</div>
+				<div style={{ marginBottom: 5 }}>Room: {gameId}</div>
+				<Divider />
+				<div className='infoContainer' style={{ marginTop: 5 }}>
+					<div className='bombInfo'>
+						<img src={Bomb} alt="bomb" height={35} width={35} />
+						{bombs}
+					</div>
+					<AppTimer time={time} />
 				</div>
-			)}
+			</div>
 		</div>
 	)
 }
 
 export default Info
+
