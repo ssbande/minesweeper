@@ -44,6 +44,7 @@ export type Cell = {
 	value: CellValue
 	state: CellState
 	exploded?: boolean
+	invalidFlag?: boolean
 }
 
 export interface IPoint {

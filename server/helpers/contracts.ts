@@ -63,6 +63,7 @@ export type Cell = {
 	value: CellValue
 	state: CellState
 	exploded?: boolean
+	invalidFlag?: boolean
 }
 
 export interface IPoint {
@@ -102,6 +103,7 @@ export const cellSchema = new mongoose.Schema({
 	value: { type: Number, required: true },
 	state: { type: String, required: true },
 	exploded: { type: Boolean, required: false },
+	invalidFlag: { type: Boolean, required: false },
 })
 
 export const mineFieldSchema = new mongoose.Schema({

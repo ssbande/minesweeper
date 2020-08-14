@@ -15,3 +15,9 @@
     border-top-color: #e1e1e1	;
   }
 }
+
+@mixin centerAlign() {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

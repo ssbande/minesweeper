@@ -171,6 +171,16 @@
     background: red;
   }
 
+  &.invalidFlag {
+    background: orange;
+    border-color: orangered;
+  }
+
+  &.invalidFlag:hover {
+    transform: none;
+    
+  }
+
   span {
     font-size: 12px;
     margin-left: 2px;
@@ -200,4 +210,61 @@
   &.value-8 {
     color: gray;
   }
+}
+
+.gameStatusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flagInfo {
+  @include centerAlign();
+  letter-spacing: 10px;
+  color: #3f51b5;
+  font-size: 35px;
+  line-height: 35px;
+}
+
+.explosionInfo {
+  @include centerAlign();
+  div {
+    letter-spacing: normal;
+  }
+}
+
+@-webkit-keyframes rotating /* Safari and Chrome */ {
+  from {
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+@keyframes rotating {
+  from {
+    -ms-transform: rotate(0deg);
+    -moz-transform: rotate(0deg);
+    -webkit-transform: rotate(0deg);
+    -o-transform: rotate(0deg);
+    transform: rotate(0deg);
+  }
+  to {
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    transform: rotate(360deg);
+  }
+}
+.rotating {
+  -webkit-animation: rotating 4s linear infinite;
+  -moz-animation: rotating 4s linear infinite;
+  -ms-animation: rotating 4s linear infinite;
+  -o-animation: rotating 4s linear infinite;
+  animation: rotating 4s linear infinite;
 }

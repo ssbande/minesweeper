@@ -169,7 +169,8 @@ const Info: React.FC<InfoProps> = ({
 			</div>
 			<div className="playerInfo">
 				<div className="playerWinInfo">GAME INFO</div>
-				<div style={{ marginBottom: 5 }}>Room: {gameId}</div>
+				<div style={{ marginBottom: 5 }}>Room: {gameId.toUpperCase()}</div>
+				<div style={{ marginBottom: 5 }}>State: {state}</div>
 				<Divider />
 				<div className='infoContainer' style={{ marginTop: 5 }}>
 					<div className='bombInfo'>

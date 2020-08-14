@@ -18,11 +18,7 @@ import {
 	Face,
 } from '../utils/contracts'
 import { Dispatch, bindActionCreators } from 'redux'
-import Button from '../game/Button'
 import ErrorMessage from '../game/ErrorMessage'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import Container from '@material-ui/core/Container'
 import Info from '../game/Info'
@@ -130,13 +126,6 @@ function App(props: IAppProps) {
 
 	return (
 		<Fragment>
-			<AppBar position="static">
-				<Toolbar variant="dense">
-					<Typography variant="h6" color="inherit">
-						Minesweeper - SB
-					</Typography>
-				</Toolbar>
-			</AppBar>
 			<ErrorMessage error={error} removeErrorFromStore={removeErrorFromStore} />
 			<CssBaseline />
 			{!!game.gameId && (
@@ -159,6 +148,7 @@ function App(props: IAppProps) {
 							<Field
 								game={game}
 								player={me}
+								winner={winner}
 								handleCellClick={handleCellClick}
 								handleCellContext={handleCellContext}
 							/>

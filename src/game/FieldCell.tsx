@@ -1,6 +1,8 @@
 import React from 'react';
 import { IPlayer, IMineField, CellState, CellValue } from '../utils/contracts';
-import { red } from '@material-ui/core/colors';
+import MyFlag from '../styles/images/greenFlag.png';
+import OpponentFlag from '../styles/images/redFlag.png';
+import Bomb from '../styles/images/bomb.png';
 
 interface IFieldCellProps {
   col: number
@@ -14,16 +16,12 @@ interface IFieldCellProps {
 const FieldCell = (props: IFieldCellProps) => {
   const {field, row, col, opponent, onClick, onContext} = props;
   const cell = field.field[row][col];
-  const { state, value, exploded }= cell;
+  const { state, value, exploded, invalidFlag }= cell;
 
   const renderContent = (): React.ReactNode => {
 		if (state === CellState.DUG) {
 			if (value === CellValue.BOMB) {
-				return (
-					<span role="img" aria-label="bomb">
-						💣
-					</span>
-				)
+				return <img src={Bomb} alt="bomb" height={15} width={15} />
 			} else if (value === CellValue.NONE) {
 				return null
 			}
@@ -33,15 +31,9 @@ const FieldCell = (props: IFieldCellProps) => {
 			const flagBelongsToOpponent = opponent.flagPositions.find(
 				a => a.markedCol === col && a.markedRow === row
 			)
-			return flagBelongsToOpponent ? (
-				<span role="img" aria-label="flag">
-					🏴
-				</span>
-			) : (
-				<span role="img" aria-label="flag">
-					🚩
-				</span>
-			)
+			return flagBelongsToOpponent 
+				? <img src={OpponentFlag} alt="myFlag" height={15} width={15} />
+				: <img src={MyFlag} alt="myFlag" height={15} width={15} />
 		}
 
 		return null
@@ -51,7 +43,8 @@ const FieldCell = (props: IFieldCellProps) => {
 		<div
 			className={`FieldCell ${
 				state === CellState.DUG ? 'dug' : ''
-			} value-${value} ${exploded ? 'red' : ''}`}
+			} value-${value} ${exploded ? 'red' : ''}
+			${invalidFlag ? 'invalidFlag' : ''}`}
 			onClick={onClick(row, col)}
 			onContextMenu={onContext(row, col)}
 		>
