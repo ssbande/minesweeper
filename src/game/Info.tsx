@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Badge from '@material-ui/core/Badge'
 import Avatar from 'avataaars'
 import {
@@ -10,7 +10,10 @@ import {
 import Divider from '@material-ui/core/Divider';
 import { IPlayer, GameState } from '../utils/contracts';
 import Bomb from '../styles/images/bomb.png';
+import Trophy from '../styles/images/trophy.png';
+import Loser from '../styles/images/crying.png';
 import AppTimer from './Timer';
+import Confetti from 'react-dom-confetti';
 
 interface InfoProps {
 	gameId: string
@@ -21,6 +24,20 @@ interface InfoProps {
 	time: number
 	bombs: number
 }
+
+const confettiConfig = {
+	angle: 90,
+	spread: 180,
+	startVelocity: 27,
+	elementCount: 150,
+	dragFriction: 0.12,
+	duration: 2900,
+	stagger: 3,
+	width: "10px",
+	height: "10px",
+	perspective: "500px",
+	colors: ["#a864fd", "#29cdff", "#78ff44", "#ff718d", "#fdff6a"]
+};
 
 const StyledBadge = withStyles((theme: Theme) =>
 	createStyles({
@@ -135,6 +152,15 @@ const Info: React.FC<InfoProps> = ({
 	time,
 	bombs
 }) => {
+	const [showConfetti, setShowConfetti] = useState(false);
+	useEffect(() => {
+		if(state === GameState.OVER && winner === player.id) {
+			setTimeout(() => {
+				setShowConfetti(true);
+			}, 2000);
+		}
+	}, [state, player, winner])
+
 	const classes = useStyles()
 	return (
 		<div className='infoContainer'>
@@ -142,7 +168,7 @@ const Info: React.FC<InfoProps> = ({
 				<StyledBadge
 					overlap="circle"
 					anchorOrigin={{
-						vertical: 'bottom',
+						vertical: 'top',
 						horizontal: 'right',
 					}}
 					variant="dot"
@@ -154,13 +180,20 @@ const Info: React.FC<InfoProps> = ({
 						<div>Hello !</div>
 						<div>You are {player.name}</div>
 						{state === GameState.OVER && (
-							<div className="playerWinInfo">
+							<div className="playerWinInfo" style={{marginTop: 10}}>
 								{judge === 'DRAW' && <div>It's a draw !!!</div>}
 								{judge !== 'DRAW' && <div>
 									{winner === player.id
-										? (<div>You won !!!</div>)
-										: (<div>You Lost</div>)
+										? (<div className='explosionInfo' style={{ flexDirection: 'column' }}>
+											<img src={Trophy} alt="winner" height={45} width={50} />
+											<div>You won !!!</div>
+										</div>)
+										: (<div className='explosionInfo' style={{ flexDirection: 'column' }}>
+											<img src={Loser} alt="loser" height={45} width={50} />
+											<div>You lost ... </div>
+										</div>)
 									}
+									<Confetti active={showConfetti} config={confettiConfig} />
 								</div>}
 							</div>
 						)}

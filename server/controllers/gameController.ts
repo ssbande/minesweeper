@@ -297,8 +297,9 @@ export const removePlayer = async (req: Request, res: Response) => {
 				newGame.players.find(
 					player => player.id !== req.params.id.toString()
 				).isWinner = true
-				newGame.judge =
-					req.params.id === '0' ? GameScene['1_WON'] : GameScene['0_WON']
+				// newGame.judge =
+				// 	req.params.id === '0' ? GameScene['1_WON'] : GameScene['0_WON']
+				newGame.judge = GameScene.OPPONENT_LEFT
 				newGame.state = GameState.OVER
 				newGame.save({}, (err, game: IGameDocument) => {
 					const response = err ? err : game

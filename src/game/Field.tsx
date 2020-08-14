@@ -9,9 +9,8 @@ import Explosion from '../styles/images/explosion.png';
 import Play from '../styles/images/play.png';
 import HGlass from '../styles/images/hourglass.png';
 import Handshake from '../styles/images/handshake.png';
-import Trophy from '../styles/images/trophy.png';
-import Loser from '../styles/images/crying.png';
-import { bounce, headShake, slideInUp, fadeIn, zoomIn } from 'react-animations';
+import Exit from '../styles/images/exit-door.png';
+import { pulse, headShake, slideInUp, fadeIn, zoomIn, slideInRight } from 'react-animations';
 import Radium, { StyleRoot } from 'radium';
 
 interface IFieldProps {
@@ -23,36 +22,28 @@ interface IFieldProps {
 }
 
 const styles = {
-  bounce: {
-    animation: 'x',
-    animationDelay: '1s',
-    animationDuration: '3s',
-    animationIterationCount: 'infinite',
-    animationName: Radium.keyframes(bounce, 'bounce',)
+  pulse: {
+    animation: 'x 1s ease 1s infinite',
+    animationName: Radium.keyframes(pulse, 'pulse',)
   },
   headShake: {
-    animation: 'x',
-    animationDelay: '1s',
-    animationDuration: '3s',
-    animationIterationCount: 'infinite',
+    animation: 'x 3s ease 1s infinite',
     animationName: Radium.keyframes(headShake, 'headShake',)
   },
   slideInUp: {
-    animation: 'x',
-    animationDelay: '0s',
-    animationDuration: '3s',
+    animation: 'x 3s ease 0s',
     animationName: Radium.keyframes(slideInUp, 'slideInUp',)
   },
+  slideInRight: {
+    animation: 'x 1.5s ease 0s',
+    animationName: Radium.keyframes(slideInRight, 'slideInRight',)
+  },
   fadeIn: {
-    animation: 'x',
-    animationDelay: '0s',
-    animationDuration: '3s',
+    animation: 'x 3s ease 0s',
     animationName: Radium.keyframes(fadeIn, 'fadeIn',)
   },
   zoomIn: {
-    animation: 'x',
-    animationDelay: '0s',
-    animationDuration: '3s',
+    animation: 'x 3s ease 0s',
     animationName: Radium.keyframes(zoomIn, 'zoomIn',)
   }
 }
@@ -61,7 +52,6 @@ const Field = (props: IFieldProps) => {
   const field = props.game?.mineField?.field;
   if (!field) return null;
 
-  console.log(props.game.mineField)
   const { mineField: { maxRows, maxCols, noOfBombs }, state, turn, totalMarkedFlags, judge } = props.game;
   return <div>
     {state === GameState.PREPARING && <div>
@@ -82,27 +72,38 @@ const Field = (props: IFieldProps) => {
                   </div>
                 </div>
                 : <div className='explosionInfo'>
-                  <img style={styles.zoomIn} src={props.winner === props.player.id ? Trophy : Loser} alt="handshake" height={45} width={45} />
+                  <img style={styles.zoomIn} src={props.winner === props.player.id ? MyFlag : OpponentFlag} alt="handshake" height={45} width={45} />
                   <div style={{ paddingLeft: 10 }}>
-          <div className='flagInfo'>{props.game.players[+props.winner].flagPositions.filter(a => a.isValidBomb).length} of {props.game.players[+props.winner].flagCount} <img src={props.winner === props.player.id ? MyFlag : OpponentFlag} alt="myFlag" height={35} width={35} style={{paddingLeft: 10}}/></div>
-          <div>vs {props.game.players[1-+props.winner].flagPositions.filter(a => a.isValidBomb).length} of {props.game.players[1-+props.winner].flagCount} <img src={props.winner === props.player.id ? OpponentFlag : MyFlag} alt="myFlag" height={10} width={10} /></div>
+                    <div className='flagInfo'>{props.game.players[+props.winner].flagPositions.filter(a => a.isValidBomb).length} of {props.game.players[+props.winner].flagCount}</div>
+                    <div>vs {props.game.players[1 - +props.winner].flagPositions.filter(a => a.isValidBomb).length} of {props.game.players[1 - +props.winner].flagCount} <img src={props.winner === props.player.id ? OpponentFlag : MyFlag} alt="myFlag" height={10} width={10} /></div>
                   </div>
                 </div>
               }
             </div>
             : <div className='explosionInfo'>
-              <img style={styles.slideInUp} src={Explosion} alt="explosion" height={45} width={45} />
-              <div style={{ ...styles.fadeIn, paddingLeft: 10 }}>
-                <div className='flagInfo'>{props.winner === props.player.id ? 'Opponent' : 'You'}</div>
-                <div>dig a bomb</div>
-              </div>
+              {props.game.judge === 'OPPONENT_LEFT'
+                ? <Fragment>
+                  <img style={styles.slideInRight} src={Exit} alt="explosion" height={45} width={45} />
+                  <div style={{ ...styles.fadeIn, paddingLeft: 10 }}>
+                    <div className='flagInfo'>{props.winner === props.player.id ? 'Opponent' : 'You'}</div>
+                    <div>left the game</div>
+                  </div>
+                </Fragment>
+                : <Fragment>
+                  <img style={styles.slideInUp} src={Explosion} alt="explosion" height={45} width={45} />
+                  <div style={{ ...styles.fadeIn, paddingLeft: 10 }}>
+                    <div className='flagInfo'>{props.winner === props.player.id ? 'Opponent' : 'You'}</div>
+                    <div>dig a bomb</div>
+                  </div>
+                </Fragment>
+              }
             </div>
           }
         </Fragment>
         : <Fragment>
           {(turn.toString() === props.player.id)
             ? <div className='explosionInfo'>
-              <img style={styles.bounce} src={Play} alt="play" height={45} width={50} />
+              <img style={styles.pulse} src={Play} alt="play" height={45} width={50} />
               <div style={{ paddingLeft: 10 }}>
                 <div className='playerWinInfo'>PLAY</div>
                 <div>it's your turn</div>

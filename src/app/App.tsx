@@ -1,6 +1,5 @@
-import React, { useEffect, useState, Fragment } from 'react'
+import React, { useEffect, useState } from 'react'
 import './App.scss'
-// import './main.scss'
 import { connect } from 'react-redux'
 import {
 	createGame,
@@ -23,6 +22,13 @@ import CssBaseline from '@material-ui/core/CssBaseline'
 import Container from '@material-ui/core/Container'
 import Info from '../game/Info'
 import Field from '../game/Field'
+import posed from 'react-pose';
+import { PoseDiv } from '../utils/components'
+
+const AppContainer = posed.div({
+	enter: { staggerChildren: 100 },
+	exit: { staggerChildren: 20, staggerDirection: -1 }
+});
 
 function App(props: IAppProps) {
 	const {
@@ -125,7 +131,7 @@ function App(props: IAppProps) {
 	}
 
 	return (
-		<Fragment>
+		<AppContainer>
 			<ErrorMessage error={error} removeErrorFromStore={removeErrorFromStore} />
 			<CssBaseline />
 			{!!game.gameId && (
@@ -135,16 +141,18 @@ function App(props: IAppProps) {
 						backgroundColor: '#cfe8fc',
 						minHeight: '100vh',
 					}}>
-						<Info
-							gameId={game.gameId}
-							player={me}
-							state={game.state}
-							judge={game.judge}
-							winner={winner}
-							time={time}
-							bombs={game.mineField.noOfBombs - game.totalMarkedFlags}
-						/>
-						<div style={{ padding: '50px' }}>
+						<PoseDiv>
+							<Info
+								gameId={game.gameId}
+								player={me}
+								state={game.state}
+								judge={game.judge}
+								winner={winner}
+								time={time}
+								bombs={game.mineField.noOfBombs - game.totalMarkedFlags}
+							/>
+						</PoseDiv>
+						<PoseDiv style={{ padding: '50px' }}>
 							<Field
 								game={game}
 								player={me}
@@ -152,11 +160,11 @@ function App(props: IAppProps) {
 								handleCellClick={handleCellClick}
 								handleCellContext={handleCellContext}
 							/>
-						</div>
+						</PoseDiv>
 					</div>
 				</Container>
 			)}
-		</Fragment>
+		</AppContainer>
 	)
 }
 
