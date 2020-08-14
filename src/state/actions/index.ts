@@ -11,6 +11,8 @@ import {
 	MAKE_MOVE,
 	REMOVE_ERROR_FROM_STORE,
 } from '../actionTypes'
+// import { Message } from '../../utils/socketUtils'
+// import { IOnWaitingOpponent, ActionType } from './contracts'
 
 export const createGame = () => (dispatch: Dispatch) => {
 	const url = resolveUri(Constants.apiEndpoints.createGame)({
@@ -80,3 +82,10 @@ export const handleStorageChange = (e: any) => (dispatch: Dispatch) => {
 		dispatch({ type: REMOVE_LOCAL_PLAYER, payload: { playerId: e.newValue } })
 	}
 }
+
+
+// // Socket Actions 
+// export const onWaitingOpponent = (m: Message): IOnWaitingOpponent => ({
+// 	message: m,
+// 	type: ActionType.WAITING_OPPONENT
+// })

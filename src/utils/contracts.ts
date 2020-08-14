@@ -1,3 +1,5 @@
+import { Message } from "./socketUtils";
+
 export interface IData {
 	[key: string]: any
 }
@@ -13,6 +15,11 @@ export interface IEndpointTypes {
 	SUCCESS: string
 	ERROR: string
 	BASE: string
+}
+
+export enum GameType {
+	NEW = 'NEW',
+	JOIN = 'JOIN'
 }
 
 export enum GameState {
@@ -32,6 +39,14 @@ export enum CellValue {
 	SEVEN,
 	EIGHT,
 	BOMB,
+}
+
+export enum GameLevel {
+	DEFAULT = 'DEFAULT',
+	BEGINNER = 'BEGINNER',
+	INTERMEDIATE = 'INTERMEDIATE',
+	EXPERT = 'EXPERT',
+	CUSTOM = 'CUSTOM'
 }
 
 export enum CellState {

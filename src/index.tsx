@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import './app/index.scss'
-import App from './app/App'
+import App from './game/Game'
 import Landing from './app/Landing'
 import { Provider } from 'react-redux'
 import configureStore from './state/store'

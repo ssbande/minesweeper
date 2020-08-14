@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import './App.scss'
+import '../styles/App.scss'
 import { connect } from 'react-redux'
 import {
 	createGame,
@@ -15,15 +15,19 @@ import {
 	IGame,
 	GameState,
 	Face,
+	GameLevel,
 } from '../utils/contracts'
 import { Dispatch, bindActionCreators } from 'redux'
-import ErrorMessage from '../game/ErrorMessage'
+import ErrorMessage from './ErrorMessage'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import Container from '@material-ui/core/Container'
-import Info from '../game/Info'
-import Field from '../game/Field'
+import Info from './Info'
+import Field from './Field'
 import posed from 'react-pose';
 import { PoseDiv } from '../utils/components'
+import { OutputMessageType, Message } from '../utils/socketUtils'
+import getManager from '../managers';
+import ConnectionManager from '../managers/connection';
 
 const AppContainer = posed.div({
 	enter: { staggerChildren: 100 },
@@ -31,6 +35,7 @@ const AppContainer = posed.div({
 });
 
 function App(props: IAppProps) {
+	const conn: ConnectionManager = getManager().getConnectionManager();
 	const {
 		createGame,
 		joinGame,
@@ -45,16 +50,16 @@ function App(props: IAppProps) {
 		error,
 	} = props
 	const [winner, setWinner] = useState<string>('')
-	const [face, setFace] = useState<Face>(Face.smile)
+	// const [face, setFace] = useState<Face>(Face.smile)
 	const [time, setTime] = useState<number>(0)
 	const [live, setLive] = useState<boolean>(false)
 
-	const handleMouseDown = (): void => setFace(Face.oh)
-	const handleMouseUp = (): void => setFace(Face.smile)
+	// const handleMouseDown = (): void => setFace(Face.oh)
+	// const handleMouseUp = (): void => setFace(Face.smile)
 
 	useEffect(() => {
-		window.addEventListener('mousedown', handleMouseDown)
-		window.addEventListener('mouseup', handleMouseUp)
+		// window.addEventListener('mousedown', handleMouseDown)
+		// window.addEventListener('mouseup', handleMouseUp)
 		window.addEventListener('storage', handleStorageChange)
 		window.addEventListener('beforeunload', e => {
 			if (localStorage.getItem('game')) {
@@ -62,9 +67,31 @@ function App(props: IAppProps) {
 			}
 		})
 
+		conn.subscribe((m: Message) => {
+			console.log('received message back: ', m.getType(), m.getPayload());
+			// switch (m.getType()) {
+			// 	case OutputMessageType.NEW_GAME:
+			// 		context.gameState = MultiGameState.STATE_WAITING_OPPONENT;
+			// 		this.props.onWaitingOpponent(m);
+			// 		break;
+			// 	case OutputMessageType.GAME_ESTABLISHED:
+			// 		context.gameState = MultiGameState.STATE_MATCH_SUCCESS;
+			// 		this.props.onGameEstablished(m);
+			// 		break;
+			// 	case OutputMessageType.CHECK_BOARD:
+			// 		const payload: IOutputCheckBoard = m.getPayload() as IOutputCheckBoard;
+			// 		this.props.onBoardUpdate(payload);
+			// 		break;
+			// 	case OutputMessageType.ERROR:
+			// 		this.props.onGameError(m);
+			// 	default:
+			// 		break;
+			// }
+		});
+
 		return () => {
-			window.removeEventListener('mousedown', handleMouseDown)
-			window.removeEventListener('mouseup', handleMouseUp)
+			// window.removeEventListener('mousedown', handleMouseDown)
+			// window.removeEventListener('mouseup', handleMouseUp)
 		}
 	})
 
@@ -87,11 +114,19 @@ function App(props: IAppProps) {
 		const localGame = localStorage.getItem('game')
 		if (!localGame) {
 			createGame()
+			conn.send(new Message(OutputMessageType.CREATE_GAME, {
+				level: GameLevel.BEGINNER,
+				name: 'Player1'
+			}));
 		} else if (!me.name) {
 			const parsedGame = JSON.parse(localGame) as IGame
 			joinGame(parsedGame.gameId)
+			conn.send(new Message(OutputMessageType.JOIN_GAME, {
+				name: 'Player2',
+				gameId: 'some Game Id'
+			}));
 		}
-	}, [createGame, joinGame, me])
+	}, [createGame, joinGame, me, conn])
 
 	useEffect(() => {
 		if (game.state === GameState.OVER) {
@@ -112,8 +147,12 @@ function App(props: IAppProps) {
 	useEffect(() => {
 		if (shouldRemovePlayer && !!removePlayerId) {
 			removePlayer(game.gameId, removePlayerId.toString())
+			conn.send(new Message(OutputMessageType.REMOVE_PLAYER, {
+				name: 'Player2',
+				gameId: game.gameId
+			}));
 		}
-	}, [shouldRemovePlayer, removePlayerId, removePlayer, game.gameId])
+	}, [shouldRemovePlayer, removePlayerId, removePlayer, game.gameId, conn])
 
 	const handleFaceClick = () => {
 		// TODO: add restart functionality
@@ -121,6 +160,13 @@ function App(props: IAppProps) {
 
 	const handleCellClick = (rowParam: number, colParam: number) => (): void => {
 		makeMove(game.gameId, me.id, rowParam, colParam, false)
+		conn.send(new Message(OutputMessageType.MAKE_MOVE, {
+			gameId: game.gameId,
+			playerId: me.id,
+			rowParam,
+			colParam,
+			isContext: false
+		}));
 	}
 
 	const handleCellContext = (rowParam: number, colParam: number) => (
@@ -128,6 +174,13 @@ function App(props: IAppProps) {
 	): void => {
 		e.preventDefault()
 		makeMove(game.gameId, me.id, rowParam, colParam, true)
+		conn.send(new Message(OutputMessageType.MAKE_MOVE, {
+			gameId: game.gameId,
+			playerId: me.id,
+			rowParam,
+			colParam,
+			isContext: true
+		}));
 	}
 
 	return (

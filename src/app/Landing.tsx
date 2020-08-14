@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import {withRouter} from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import CssBaseline from '@material-ui/core/CssBaseline'
 import Container from '@material-ui/core/Container'
@@ -36,9 +36,8 @@ const Landing = (props: any) => {
           className={classes.button}
           startIcon={<DeleteIcon />}
         >
-          Delete
+          Join
       </Button>
-        {/* This Button uses a Font Icon, see the installation instructions in the Icon component docs. */}
         <Button
           variant="contained"
           color="primary"
@@ -46,7 +45,7 @@ const Landing = (props: any) => {
           endIcon={<SaveIcon />}
           onClick={() => nextPath('/home')}
         >
-          Send
+          Start game
       </Button>
       </div>
     </Container>
