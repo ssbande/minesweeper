@@ -47,7 +47,7 @@
 		"start:server": "npm run start:db && ts-node-dev --project server/tsconfig.json  -- server/index --inspect",
 		"test:server": "jest --config=server/test/jest.config.js",
 		"start:web": "react-scripts start",
-		"start": "concurrently 'npm:start:server' 'npm:start:web'",
+		"start": "concurrently 'npm:start:server' 'npm:start:sockets' 'npm:start:web'",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
 		"eject": "react-scripts eject",

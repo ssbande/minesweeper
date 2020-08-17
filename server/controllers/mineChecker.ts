@@ -11,12 +11,15 @@ class MineChecker {
 	 * @param game: Current game instance 
 	 */
 	public checkGameResultByFlags(game: IGameDocument): IGameDocument {
-		const player1ValidFlags = game.players[0].flagPositions.filter(
-			pos => pos.isValidBomb
-		).length
-		const player2ValidFlags = game.players[1].flagPositions.filter(
-			pos => pos.isValidBomb
-		).length
+		const player1ValidFlags = game
+			.players[0]
+			.flagPositions.filter(pos => pos.isValidBomb)
+			.length;
+
+		const player2ValidFlags = game
+			.players[1]
+			.flagPositions.filter(pos => pos.isValidBomb)
+			.length;
 
 		if (player1ValidFlags === player2ValidFlags) {
 			game.judge = GameScene.DRAW
@@ -24,20 +27,19 @@ class MineChecker {
 		} else {
 			const winnerId = player1ValidFlags > player2ValidFlags ? 0 : 1
 			game.players[winnerId].isWinner = true
-			game.judge = winnerId === 0 ? GameScene['0_WON'] : GameScene['1_WON']
+			game.judge = GameScene[`${winnerId}_WON`]
 		}
 
+		// Mark the invalid flags and dig out all the bombs
 		for (let r = 0; r < game.mineField.field.length; r++) {
 			const row = game.mineField.field[r]
 			for (let c = 0; c < row.length; c++) {
-				if (game.mineField.field[r][c].state === CellState.FLAGGED) {
-					if (game.mineField.field[r][c].value !== CellValue.BOMB) {
-						game.mineField.field[r][c].invalidFlag = true
-					}
+				if (row[c].state === CellState.FLAGGED) {
+					row[c].invalidFlag = row[c].value !== CellValue.BOMB
 				} else {
-					if (game.mineField.field[r][c].value === CellValue.BOMB) {
-						game.mineField.field[r][c].state = CellState.DUG
-					}
+					row[c].state = row[c].value === CellValue.BOMB
+						? CellState.DUG
+						: row[c].state
 				}
 			}
 		}

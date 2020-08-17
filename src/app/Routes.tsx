@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { withRouter, Switch, Route } from "react-router-dom";
 import { connect } from "react-redux";
 import posed, { PoseGroup } from 'react-pose';
-import { IAppState, GameType, IPrevGameType } from "../utils/contracts";
+import { IAppState, IPrevGameType } from "../utils/contracts";
 import PrivateRoute from "./PrivateRoute";
 import Landing from "../Landing/Landing";
 import Navbar from "../Landing/Navbar";

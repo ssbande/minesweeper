@@ -4,14 +4,13 @@ import {
 	IGame,
 	GameState,
 	GameScene,
-	CellState,
-	CellValue,
+	ApiParent,
 } from '../helpers/contracts'
 import { errorResponse, createPlayer } from '../helpers/builder'
-import constants from '../helpers/constants'
-import MineField from './mineField'
 import { v4 } from 'uuid'
-import mineChecker from './mineChecker'
+import { validateGame } from '../helpers/validator'
+import { rightClickMove, leftClickMove } from '../helpers/moveHelper'
+import MineField from '../controllers/mineField'
 const minefield = new MineField()
 
 /**
@@ -25,7 +24,6 @@ const minefield = new MineField()
  */
 export const create = (req: Request, res: Response) => {
 	const mineSweeperBoard = minefield.createNewBoard(req.params.level)
-	console.log('create game body: ', req.body)
 	const { name, localPlayerId } = req.body
 
 	const newGame: IGame = {
@@ -38,11 +36,6 @@ export const create = (req: Request, res: Response) => {
 		mineField: mineSweeperBoard,
 	}
 
-	console.log(
-		'mineSweeperBoard: ',
-		mineSweeperBoard.field.map(a => a.map(b => b.value))
-	)
-	console.log('bomb Locations: ', mineSweeperBoard.bombLocations)
 	const game = new Game(newGame)
 	game.save((err: any) => {
 		const response = err ? err : game
@@ -58,22 +51,114 @@ export const create = (req: Request, res: Response) => {
  */
 export const join = async (req: Request, res: Response) => {
 	const newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
-	if (!newGame) {
-		res.status(401).send(errorResponse(GameScene.GAME_NOT_FOUND))
-	} else if (newGame.state === GameState.OVER) {
-		res.status(401).send(errorResponse(GameScene.QUERYING_OLD_GAME))
-	} else if (newGame.players.length === constants.MaxPlayers) {
-		res.status(401).send(errorResponse(GameScene.PLAYER_EXCEEDING))
-	} else {
-		console.log('join game body: ', req.body)
-		const { name, localPlayerId } = req.body
-		newGame.players.push(createPlayer(newGame.players.length, name, localPlayerId))
-		newGame.state = GameState.RUNNING
-		newGame.save({}, (err, game: IGameDocument) => {
-			if (err) {
-				res.status(401).send(errorResponse())
-			} else res.send(game)
-		})
+	const game = validateGame(ApiParent.JOIN, newGame)
+	if (!game.isValid) {
+		return res
+			.status(401)
+			.send(errorResponse(game.error))
+	}
+
+	const { name, localPlayerId } = req.body
+	newGame.players.push(createPlayer(newGame.players.length, name, localPlayerId))
+	newGame.state = GameState.RUNNING
+	newGame.save({}, (err, game: IGameDocument) => {
+		if (err) {
+			res.status(401).send(errorResponse())
+		} else res.send(game)
+	})
+}
+
+/**
+ * * REQUEST BODY FORMAT
+ * {
+ * 		playerId: string,
+ * 		rowIndex: number,
+ * 		colIndex: number,
+ * 		isContextClick: boolean
+ * 	}
+ * Once all the checks are passed for the game ID, turn and player ID
+ * it will proceed with the move logic, otherwise would response back with the error
+ * 
+ * LOGIC ---------------------------------------------------------------------------
+ * RIGHT CLICK ::::::::::
+ * 	IF the current cell is already Flagged,
+ * 		IF the user who is trying to unFlag the cell(as its already in Flagged state)
+ * 		is the one who has marked this cell as Flagged, then change the state to UNTOUCHED
+ * 		ELSE send error 
+ * 	IF the current cell is not Flagged and not Dug, the mark the cell as Flagged
+ * LEFT CLICK ::::::::::
+ * 	If someone is trying to left click on a Flagged cell, if it belongs to the same player, 
+ * 	instruct to use right click, 
+ * 	ELSE throw error 
+ * 	IF clicked cell is bomb, mark other player as winner. End the game
+ * 	IF clicked cell is 0, dig all the cells until we reach non-zero cells in all direction
+ * 	ELSE dig the cell
+ * @param req: Request received. Contains the GameID for which the info needs to be fetched 
+ * @param res: Success / Error Response depending on the conditions and validations 
+ */
+export const makeMove = async (req: Request, res: Response) => {
+	let newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
+	try {
+		const { playerId, rowIndex, colIndex, isContextClick } = req.body
+		const game = validateGame(ApiParent.MOVE, newGame, playerId);
+		if (!game.isValid) {
+			return res
+				.status(401)
+				.send(errorResponse(game.error))
+		}
+
+		newGame.turn = 1 - +playerId;
+		const currentPlayer = newGame
+			.players
+			.find(player => player.id === playerId)
+
+		const { game: clickedGame, gameValidity } = isContextClick
+			? rightClickMove(newGame, currentPlayer, rowIndex, colIndex)
+			: leftClickMove(newGame, currentPlayer, rowIndex, colIndex);
+
+		if (gameValidity.isValid) {
+			clickedGame.save({}, (err, game: IGameDocument) => {
+				const response = err ? err : game
+				return res.send(response)
+			})
+		} else return res
+			.status(401)
+			.send(errorResponse(gameValidity.error))
+	} catch (error) {
+		res.status(400).send(errorResponse(GameScene.BAD_REQUEST))
+	}
+}
+
+/**
+ * Purge the player from the game and mark the other player as winner. 
+ * @param req: Request received. Contains the GameID for which the info needs to be fetched 
+ * @param res: Success / Error response based on the conditions and validations
+ */
+export const removePlayer = async (req: Request, res: Response) => {
+	try {
+		const newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
+		const game = validateGame(ApiParent.REMOVE, newGame, req.params.id);
+		if (!game.isValid) {
+			return res
+				.status(401)
+				.send(errorResponse(game.error))
+		}
+
+		const otherPlayer = newGame
+			.players
+			.find(player => player.localId !== req.params.id)
+
+		if (otherPlayer) {
+			otherPlayer.isWinner = true
+			newGame.judge = GameScene.OPPONENT_LEFT
+			newGame.state = GameState.OVER
+			newGame.save({}, (err, game: IGameDocument) => {
+				const response = err ? err : game
+				res.send(response)
+			})
+		}
+	} catch (error) {
+		res.status(401).send(errorResponse())
 	}
 }
 
@@ -125,194 +210,4 @@ export const getInfo = (req: Request, res: Response) => {
 			return res.send(response)
 		}
 	)
-}
-
-/**
- * * REQUEST BODY FORMAT
- * {
- * 		playerId: string,
- * 		rowIndex: number,
- * 		colIndex: number,
- * 		isContextClick: boolean
- * 	}
- * Once all the checks are passed for the game ID, turn and player ID
- * it will proceed with the move logic, otherwise would response back with the error
- * 
- * LOGIC ---------------------------------------------------------------------------
- * RIGHT CLICK ::::::::::
- * 	IF the current cell is already Flagged,
- * 		IF the user who is trying to unFlag the cell(as its already in Flagged state)
- * 		is the one who has marked this cell as Flagged, then change the state to UNTOUCHED
- * 		ELSE send error 
- * 	IF the current cell is not Flagged and not Dug, the mark the cell as Flagged
- * LEFT CLICK ::::::::::
- * 	If someone is trying to left click on a Flagged cell, if it belongs to the same player, 
- * 	instruct to use right click, 
- * 	ELSE throw error 
- * 	IF clicked cell is bomb, mark other player as winner. End the game
- * 	IF clicked cell is 0, dig all the cells until we reach non-zero cells in all direction
- * 	ELSE dig the cell
- * @param req: Request received. Contains the GameID for which the info needs to be fetched 
- * @param res: Success / Error Response depending on the conditions and validations 
- */
-export const makeMove = async (req: Request, res: Response) => {
-	let newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
-	if (!newGame) {
-		res.status(401).send(errorResponse(GameScene.GAME_NOT_FOUND))
-	} else if (newGame.state === GameState.OVER) {
-		res.status(401).send(errorResponse(GameScene.QUERYING_OLD_GAME))
-	} else if (newGame.state === GameState.PREPARING) {
-		res.status(401).send(errorResponse(GameScene.GAME_NOT_STARTED))
-	} else {
-		try {
-			const { playerId, rowIndex, colIndex, isContextClick } = req.body
-			if (+playerId < 0 || +playerId > 1) {
-				// eslint-disable-next-line no-throw-literal
-				throw {}
-			}
-
-			if (newGame.turn.toString() !== playerId) {
-				return res.status(401).send(errorResponse(GameScene.NOT_YOUR_TURN))
-			}
-
-			const currentPlayer = newGame.players.find(
-				player => player.id === playerId
-			)
-			const currentCell = newGame.mineField.field[rowIndex][colIndex]
-			newGame.turn = playerId === '0' ? 1 : 0
-
-			if (isContextClick) {
-				if (currentCell.state === CellState.FLAGGED) {
-					if (
-						!!currentPlayer.flagPositions.filter(
-							pos => pos.markedRow === rowIndex && pos.markedCol === colIndex
-						).length
-					) {
-						currentCell.state = CellState.UNTOUCHED
-						currentPlayer.flagPositions = currentPlayer.flagPositions.filter(
-							pos => pos.markedRow !== rowIndex && pos.markedCol !== colIndex
-						)
-						currentPlayer.flagCount--
-						newGame.totalMarkedFlags--
-					} else {
-						return res
-							.status(401)
-							.send(errorResponse(GameScene.CANT_ALTER_OTHERS_FLAG))
-					}
-				} else if (currentCell.state !== CellState.DUG) {
-					currentCell.state = CellState.FLAGGED
-					currentPlayer.flagPositions.push({
-						markedRow: rowIndex,
-						markedCol: colIndex,
-						isValidBomb: !!newGame.mineField.bombLocations.find(
-							bomb => bomb.x === rowIndex && bomb.y === colIndex
-						),
-					})
-
-					currentPlayer.flagCount++
-					newGame.totalMarkedFlags++
-				}
-
-				if (newGame.totalMarkedFlags === newGame.mineField.noOfBombs) {
-					newGame.state = GameState.OVER
-					newGame = mineChecker.checkGameResultByFlags(newGame)
-				}
-				newGame.save({}, (err, game: IGameDocument) => {
-					const response = err ? err : game
-					res.send(response)
-				})
-				return
-			}
-
-			if (currentCell.state === CellState.FLAGGED) {
-				if (
-					!!currentPlayer.flagPositions.filter(
-						pos => pos.markedRow === rowIndex && pos.markedCol === colIndex
-					).length
-				) {
-					return res
-						.status(401)
-						.send(errorResponse(GameScene.UNMARK_WITH_RIGHT_CLICK))
-				} else {
-					return res
-						.status(401)
-						.send(errorResponse(GameScene.CANT_ALTER_OTHERS_FLAG))
-				}
-			} else if (currentCell.state === CellState.DUG) {
-				return res.status(400).send(errorResponse(GameScene.DIG_DUG_CELL))
-			} else {
-				// If the player clicked on a bomb
-				if (currentCell.value === CellValue.BOMB) {
-					currentCell.state = CellState.DUG
-					currentCell.exploded = true
-					newGame.players.find(
-						player => player.id !== currentPlayer.id
-					).isWinner = true
-					newGame.state = GameState.OVER
-					newGame.judge =
-						playerId === '0' ? GameScene['1_WON'] : GameScene['0_WON']
-					for (let r = 0; r < newGame.mineField.field.length; r++) {
-						const row = newGame.mineField.field[r]
-						for (let c = 0; c < row.length; c++) {
-							if (newGame.mineField.field[r][c].value === CellValue.BOMB) {
-								newGame.mineField.field[r][c].state = CellState.DUG
-							}
-						}
-					}
-				} else if (currentCell.value === CellValue.NONE) {
-					newGame.mineField.field = minefield.expandZeroCells(
-						newGame.mineField.field,
-						rowIndex,
-						colIndex
-					)
-				} else {
-					currentCell.state = CellState.DUG
-				}
-
-			}
-
-			newGame.save({}, (err, game: IGameDocument) => {
-				const response = err ? err : game
-				return res.send(response)
-			})
-		} catch (error) {
-			res.status(400).send(errorResponse(GameScene.BAD_REQUEST))
-		}
-	}
-}
-
-/**
- * Purge the player from the game and mark the other player as winner. 
- * @param req: Request received. Contains the GameID for which the info needs to be fetched 
- * @param res: Success / Error response based on the conditions and validations
- */
-export const removePlayer = async (req: Request, res: Response) => {
-	try {
-		const newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
-		if (!newGame) {
-			res.status(401).send(errorResponse(GameScene.GAME_NOT_FOUND))
-		} else if (!newGame.players.find(player => player.localId === req.params.id)) {
-			res.status(401).send(errorResponse(GameScene.PLAYER_NOT_FOUND))
-		} else if (newGame.state === GameState.OVER) {
-			res.status(401).send(errorResponse(GameScene.QUERYING_OLD_GAME))
-		} else {
-			if (
-				newGame.players.find(player => player.localId !== req.params.id.toString())
-			) {
-				newGame.players.find(
-					player => player.localId !== req.params.id.toString()
-				).isWinner = true
-				// newGame.judge =
-				// 	req.params.id === '0' ? GameScene['1_WON'] : GameScene['0_WON']
-				newGame.judge = GameScene.OPPONENT_LEFT
-				newGame.state = GameState.OVER
-				newGame.save({}, (err, game: IGameDocument) => {
-					const response = err ? err : game
-					res.send(response)
-				})
-			}
-		}
-	} catch (error) {
-		res.status(401).send(errorResponse())
-	}
 }

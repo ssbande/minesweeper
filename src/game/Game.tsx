@@ -61,11 +61,12 @@ const Game = (props: IGamePageProps) => {
     }));
   }
 
+  const containerWidth = game?.mineField?.maxCols > 15 ? 'lg' : 'md';
   return <AppContainer>
     <ErrorMessage error={error} removeErrorFromStore={removeErrorFromStore} />
     <CssBaseline />
     {!!props.game.gameId && (
-      <Container maxWidth="md">
+      <Container maxWidth={containerWidth}>
         <div className='gameBoardContainer'>
           <PoseDiv>
             <Info

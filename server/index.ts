@@ -1,6 +1,6 @@
 import bodyParser from 'body-parser'
 import express, { Request, Response } from 'express'
-import * as gameController from './controllers/gameController'
+import * as gameController from './controllers/gameController';
 
 export const app = express()
 const port = process.env.PORT || 5000

@@ -1,4 +1,22 @@
 import mongoose from 'mongoose'
+import { IGameDocument } from '../game'
+
+export enum ApiParent {
+	CREATE = 'CREATE',
+	JOIN = 'JOIN',
+	MOVE = 'MOVE',
+	REMOVE = 'REMOVE'
+}
+
+export interface IValidateGame {
+	isValid: boolean;
+	error?: GameScene;
+}
+
+export interface IClickedGame {
+  game: IGameDocument,
+  gameValidity: IValidateGame
+}
 
 export enum GameState {
 	PREPARING = 'PREPARING',

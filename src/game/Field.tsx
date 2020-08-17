@@ -74,9 +74,9 @@ const Field = (props: IFieldProps) => {
       .flagPositions
       .filter(a => a.isValidBomb).length} of ${props.game.players[+props.winner].flagCount}`;
     let winDesc: any = <Fragment>
-      vs {props.game.players[1 - +props.winner]
+      {`vs ${props.game.players[1 - +props.winner]
         .flagPositions
-        .filter(a => a.isValidBomb).length} of ${props.game.players[1 - +props.winner].flagCount}
+        .filter(a => a.isValidBomb).length} of ${props.game.players[1 - +props.winner].flagCount} `}
       <img src={props.winner === props.player.id ? OpponentFlag : MyFlag} alt="myFlag" height={10} width={10} />
     </Fragment>
 
