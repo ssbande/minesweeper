@@ -6,19 +6,6 @@ export interface IData {
 	[key: string]: any
 }
 
-export interface IApiOptions {
-	method: 'GET' | 'POST' | 'PUT' | 'DELETE'
-	headers?: IData
-	body?: string
-}
-
-export interface IEndpointTypes {
-	REQUEST: string
-	SUCCESS: string
-	ERROR: string
-	BASE: string
-}
-
 export enum GameType {
 	NEW = 'NEW',
 	JOIN = 'JOIN'
@@ -48,7 +35,7 @@ export enum GameLevel {
 	BEGINNER = 'BEGINNER',
 	INTERMEDIATE = 'INTERMEDIATE',
 	EXPERT = 'EXPERT',
-	CUSTOM = 'CUSTOM'
+	CUSTOM = 'CUSTOM' //TODO: to be implemented
 }
 
 export enum CellState {

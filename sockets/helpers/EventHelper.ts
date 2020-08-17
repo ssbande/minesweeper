@@ -2,9 +2,10 @@ import { Server, Socket } from "socket.io";
 import { Message } from "../utils/message";
 import { resolveUri } from "./ApiHelper";
 import constants from '../utils/constants'
-import ApiManager from './ApiManager';
-import GameManager from "./GameManager";
-import getManager from ".";
+import ApiManager from '../managers/ApiManager';
+import GameManager from "../managers/GameManager";
+import getManager from "../managers";
+import { OutputMessageType } from "../utils/contracts";
 
 export default class EventHelper {
   private static games: GameManager = getManager().getGameManager();
@@ -25,7 +26,7 @@ export default class EventHelper {
         socket.join(res.gameId)
         this.games.addGame(res.gameId)
         this.games.addPlayerToGame(socket.id, res.gameId);
-        socket.emit('message', new Message('GAME_CREATED', res))
+        socket.emit('message', new Message(OutputMessageType.GAME_CREATED, res))
       })
       .catch((e: any) => console.log('Error in create game: ', e))
   }
@@ -45,10 +46,10 @@ export default class EventHelper {
     ApiManager.executeFetch(url, { method: 'PUT', body })
       .then((res: any) => {
         this.games.addPlayerToGame(socket.id, data.joiningGameId);
-        io.in(data.joiningGameId).emit('message', new Message('GAME_JOINED', res))
-        socket.emit('message', new Message('PLAYER2_JOINED', res.players[1]))
+        io.in(data.joiningGameId).emit('message', new Message(OutputMessageType.GAME_JOINED, res))
+        socket.emit('message', new Message(OutputMessageType.PLAYER2_JOINED, res.players[1]))
       })
-      .catch((e: any) => socket.emit('message', new Message('ERROR', e)))
+      .catch((e: any) => socket.emit('message', new Message(OutputMessageType.ERROR, e)))
   }
 
   static makeMoveEvent(message: Message, socket: Socket, io: Server) {
@@ -66,10 +67,10 @@ export default class EventHelper {
     })
 
     ApiManager.executeFetch(url, { method: 'PUT', body })
-      .then((res: any) => {
-        io.in(data.gameId).emit('message', new Message('MADE_MOVE', res))
+      .then((res: any) => { 
+        io.in(data.gameId).emit('message', new Message(OutputMessageType.MADE_MOVE, res))
       })
-      .catch((e: any) => socket.emit('message', new Message('ERROR', e)))
+      .catch((e: any) => socket.emit('message', new Message(OutputMessageType.ERROR, e)))
   }
 
   static removePlayerEvent(socket: Socket) {
@@ -82,9 +83,8 @@ export default class EventHelper {
 
     ApiManager.executeFetch(url, { method: 'DELETE' })
       .then((res: any) => {
-        socket.broadcast.emit('message', new Message('REMOVED_PLAYER', res));
-        // socket.emit('message', new Message('REMOVED_PLAYER', res))
+        socket.broadcast.emit('message', new Message(OutputMessageType.REMOVED_PLAYER, res));
       })
-      .catch((e: any) => console.log('Error in create game: ', e))
+      .catch((e: any) => console.log('Error in removing player: ', e))
   }
 }

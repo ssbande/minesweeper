@@ -4,11 +4,10 @@ import socketIo from 'socket.io';
 import EventManager from './managers/EventManager';
 
 class GameServer {
-  public static readonly PORT: string = "4000";
+  public static readonly PORT: string = '4000';
   private app: express.Application;
   private server: Server;
   private io: socketIo.Server;
-  private port: string | number;
 
   constructor() {
     this.app = express();
@@ -29,13 +28,13 @@ class GameServer {
 
   private registerServerRoutes() {
     this.app.get('*', (req, res) => {
-      res.send('Bande, MineSweeper Server is running! ');
+      res.send('MineSweeper-SB Server is running! ');
     });
   }
 
   public listen(): void {
     this.server.listen(parseInt(GameServer.PORT), '0.0.0.0', undefined, () => {
-      console.log("[Server] Server starts to listen at port %s", GameServer.PORT);
+      console.log("[Server] Server starts to listen at port", GameServer.PORT);
     });
   }
 
