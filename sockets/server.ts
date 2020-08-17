@@ -1,6 +1,7 @@
 import { createServer, Server } from 'http';
 import express from 'express';
 import socketIo from 'socket.io';
+import EventManager from './managers/EventManager';
 
 class GameServer {
   public static readonly PORT: string = "4000";
@@ -20,19 +21,9 @@ class GameServer {
 
   private registerServerEvents(): void {
     this.io.on('connect', (socket: socketIo.Socket) => {
-      console.log('[Event] New client was connected: %s', socket.id);
-      // EventManager.onConnection(socket);
-
-      socket.on('message', (m: any) => {
-        // EventManager.onMessage(this.io, socket, m);
-        console.log('message received: ', m)
-        socket.emit('message', m)
-      });
-
-      socket.on('disconnect', () => {
-        console.log('disconnected', socket.id)
-          // EventManager.onDisconnection(socket);
-      });
+      EventManager.onConnection(socket);
+      socket.on('message', (m: any) => EventManager.onMessage(this.io, socket, m));
+      socket.on('disconnect', () => EventManager.onDisconnection(socket));
     });
   }
 

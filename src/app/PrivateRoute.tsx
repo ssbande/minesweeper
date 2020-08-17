@@ -1,19 +1,17 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { Route, Redirect } from 'react-router-dom';
-import { IData } from '../utils/contracts';
 
-interface IRouteProps extends IData {
-  component: any,
-  restricted: boolean
-}
-
-const PrivateRoute = ({ component, restricted, ...rest }: IRouteProps) => (
-  <Route {...rest} render={props => {
-    console.log('private props: ', props);
-    return restricted ?
-      <Redirect to="/" />
-      : <Component {...props} />
-  }} />
-);
+const PrivateRoute = (props: any) => {
+  const { children, state: {me: {name}, gameType}, ...rest } = props;
+   return (
+    <Route
+      {...rest}
+      render={() => !!name && !!gameType 
+        ? children 
+        : <Redirect to='/' />
+      }
+    />
+  );
+};
 
 export default PrivateRoute;

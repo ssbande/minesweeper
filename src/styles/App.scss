@@ -1,4 +1,4 @@
-@import "../styles/index.scss";
+@import "../styles/mixins.scss";
 
 .App {
   @include borders(white, #999);
@@ -231,6 +231,20 @@
   div {
     letter-spacing: normal;
   }
+}
+
+.ruleHead {
+  @include centerAlign();
+  justify-content: flex-start;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #3f51b5;
+  margin-bottom: 15px;
+}
+
+.gameBoardContainer {
+  padding: 20px; 
+  background-color: #cfe8fc; 
+  min-height: 100vh;
 }
 
 @-webkit-keyframes rotating /* Safari and Chrome */ {

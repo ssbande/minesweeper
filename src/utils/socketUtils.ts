@@ -10,20 +10,21 @@ export enum OutputMessageType {
 
 // Types being received from sockets
 export enum InputMessageType {
-  NEW_GAME = 'NEW_GAME',
-  JOINED_GAME = 'JOINED_BOARD',
+  GAME_CREATED = 'GAME_CREATED',
+  GAME_JOINED = 'GAME_JOINED',
+  PLAYER2_JOINED = 'PLAYER2_JOINED',
   MADE_MOVE = 'MADE_MOVE',
   REMOVED_PLAYER = 'REMOVED_PLAYER',
   ERROR = 'ERROR',
 }
 
 export interface ISocketCreateGame {
-  level: GameLevel
+  gameLevel: GameLevel
   name: string
 }
 
 export interface ISocketJoinGame {
-  gameId: string
+  joiningGameId: string
   name: string
 }
 

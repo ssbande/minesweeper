@@ -25,13 +25,16 @@ const minefield = new MineField()
  */
 export const create = (req: Request, res: Response) => {
 	const mineSweeperBoard = minefield.createNewBoard(req.params.level)
+	console.log('create game body: ', req.body)
+	const { name, localPlayerId } = req.body
+
 	const newGame: IGame = {
 		gameId: v4(),
 		state: GameState.PREPARING,
 		turn: 0,
 		totalMarkedFlags: 0,
 		judge: GameScene.KEEP_RUNNING,
-		players: [createPlayer(0)],
+		players: [createPlayer(0, name, localPlayerId)],
 		mineField: mineSweeperBoard,
 	}
 
@@ -62,7 +65,9 @@ export const join = async (req: Request, res: Response) => {
 	} else if (newGame.players.length === constants.MaxPlayers) {
 		res.status(401).send(errorResponse(GameScene.PLAYER_EXCEEDING))
 	} else {
-		newGame.players.push(createPlayer(newGame.players.length))
+		console.log('join game body: ', req.body)
+		const { name, localPlayerId } = req.body
+		newGame.players.push(createPlayer(newGame.players.length, name, localPlayerId))
 		newGame.state = GameState.RUNNING
 		newGame.save({}, (err, game: IGameDocument) => {
 			if (err) {
@@ -233,7 +238,7 @@ export const makeMove = async (req: Request, res: Response) => {
 						.status(401)
 						.send(errorResponse(GameScene.CANT_ALTER_OTHERS_FLAG))
 				}
-			} else if(currentCell.state === CellState.DUG) {
+			} else if (currentCell.state === CellState.DUG) {
 				return res.status(400).send(errorResponse(GameScene.DIG_DUG_CELL))
 			} else {
 				// If the player clicked on a bomb
@@ -286,16 +291,16 @@ export const removePlayer = async (req: Request, res: Response) => {
 		const newGame = await Game.findOne({ gameId: req.params.gameId }).exec()
 		if (!newGame) {
 			res.status(401).send(errorResponse(GameScene.GAME_NOT_FOUND))
-		} else if (!newGame.players.find(player => player.id === req.params.id)) {
+		} else if (!newGame.players.find(player => player.localId === req.params.id)) {
 			res.status(401).send(errorResponse(GameScene.PLAYER_NOT_FOUND))
 		} else if (newGame.state === GameState.OVER) {
 			res.status(401).send(errorResponse(GameScene.QUERYING_OLD_GAME))
 		} else {
 			if (
-				newGame.players.find(player => player.id !== req.params.id.toString())
+				newGame.players.find(player => player.localId !== req.params.id.toString())
 			) {
 				newGame.players.find(
-					player => player.id !== req.params.id.toString()
+					player => player.localId !== req.params.id.toString()
 				).isWinner = true
 				// newGame.judge =
 				// 	req.params.id === '0' ? GameScene['1_WON'] : GameScene['0_WON']

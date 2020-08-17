@@ -1,6 +1,6 @@
 import socketIo from 'socket.io-client';
-import constants from '../utils/constants';
-import { Message } from '../utils/socketUtils';
+import constants from './constants';
+import { Message } from './socketUtils';
 
 class ConnectionManager {
   private socket: SocketIOClient.Socket;
@@ -12,7 +12,6 @@ class ConnectionManager {
   }
 
   public send(m: Message) {
-    console.log('SENDING m: ', m)
     this.socket.emit('message', m);
   }
 

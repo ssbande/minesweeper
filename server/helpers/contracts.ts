@@ -35,9 +35,11 @@ export interface ICellPosition {
 export interface IPlayer {
 	id: string
 	name: string
+	localId: string
 	flagCount: number
 	flagPositions: ICellPosition[]
 	isWinner: boolean
+	avatarId: number
 }
 
 export enum CellValue {
@@ -128,8 +130,10 @@ export const GameSchema = new mongoose.Schema({
 	judge: { type: String, required: true },
 	players: [
 		{
+			avatarId: Number,
 			id: String,
 			name: String,
+			localId: String,
 			flagCount: Number,
 			isWinner: Boolean,
 			flagPositions: [

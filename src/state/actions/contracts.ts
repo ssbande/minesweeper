@@ -1,5 +1,3 @@
-import { Message } from "../../utils/socketUtils";
-
 export enum ActionType {
   CREATE_GAME = 'CREATE_GAME',
   MARK_MODE = 'MARK_MODE',
@@ -11,7 +9,3 @@ export enum ActionType {
   ON_GAME_ERROR = 'ON_GAME_ERROR'
 }
 
-export interface IOnWaitingOpponent {
-  type: ActionType.WAITING_OPPONENT,
-  message: Message
-}
