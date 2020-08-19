@@ -89,6 +89,7 @@ export interface IPlayer extends IData {
 	flagPositions: ICellPosition[]
 	isWinner: boolean
 	avatarId: number
+	isActive: boolean
 }
 
 export interface IError extends IData {
@@ -183,4 +184,10 @@ export interface ITimerState extends IData {
   seconds: string;
   minutes: string;
   hours: string;
+}
+
+export interface INavbarProps extends IData {
+	state: IAppState;
+	leaveGame: (localId: string) => void;
+	history: any;
 }

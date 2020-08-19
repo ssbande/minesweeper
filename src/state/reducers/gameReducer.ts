@@ -2,7 +2,7 @@ import { AnyAction } from 'redux'
 import { IAppState, IGame, IPlayer, GameLevel, GameType } from '../../utils/contracts'
 import { createReducer } from 'redux-create-reducer'
 import { produce } from 'immer'
-import { CREATE_GAME, JOIN_GAME } from '../actionTypes'
+import { CREATE_GAME, JOIN_GAME, LEAVE_GAME } from '../actionTypes'
 import { InputMessageType } from '../../utils/socketUtils'
 
 const initialState: IAppState = {
@@ -33,10 +33,17 @@ const handlers = {
 			draft.error = undefined
 		})
 	},
+	[LEAVE_GAME]: (state: IAppState, action: AnyAction) => {
+		return produce(state, draft => {
+			draft.me.isActive = false;
+			draft.game = {} as IGame
+		})
+	},
 	[InputMessageType.GAME_CREATED]: (state: IAppState, action: AnyAction) => {
 		return produce(state, draft => {
 			draft.game = action.payload; 
 			draft.me = action.payload.players[0]
+			draft.me.isActive = true;
 			draft.error = undefined
 		})
 	},
@@ -49,6 +56,7 @@ const handlers = {
 	[InputMessageType.PLAYER2_JOINED]: (state: IAppState, action: AnyAction) => {
 		return produce(state, draft => {
 			draft.me = action.payload
+			draft.me.isActive = true;
 			draft.error = undefined
 		})
 	},

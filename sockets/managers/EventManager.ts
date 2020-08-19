@@ -26,6 +26,9 @@ class EventManager {
       case 'MAKE_MOVE':
         EventHelper.makeMoveEvent(message, socket, io);
         break;
+      case 'REMOVE_PLAYER':
+        EventHelper.removePlayerEvent(socket);
+        break;
       default:
         break;
     }

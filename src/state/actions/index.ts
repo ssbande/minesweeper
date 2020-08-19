@@ -1,8 +1,9 @@
 import { Dispatch } from 'redux';
 import {
-	REMOVE_ERROR_FROM_STORE, 
-	JOIN_GAME, 
+	REMOVE_ERROR_FROM_STORE,
+	JOIN_GAME,
 	CREATE_GAME,
+	LEAVE_GAME,
 } from '../actionTypes';
 import { GameLevel } from '../../utils/contracts';
 import { Message, InputMessageType } from '../../utils/socketUtils';
@@ -11,7 +12,7 @@ import { Message, InputMessageType } from '../../utils/socketUtils';
 export const createGame = (level: GameLevel, name: string) => (dispatch: Dispatch) => {
 	return new Promise((resolve, reject) => {
 		try {
-			dispatch({type: CREATE_GAME, payload: {level, name}})
+			dispatch({ type: CREATE_GAME, payload: { level, name } })
 			return resolve(true)
 		} catch (error) {
 			return reject(false)
@@ -22,12 +23,16 @@ export const createGame = (level: GameLevel, name: string) => (dispatch: Dispatc
 export const joinGame = (gameId: string, name: string) => (dispatch: Dispatch) => {
 	return new Promise((resolve, reject) => {
 		try {
-			dispatch({type: JOIN_GAME, payload: {gameId, name}})
+			dispatch({ type: JOIN_GAME, payload: { gameId, name } })
 			return resolve(true)
 		} catch (error) {
 			return reject(false)
 		}
 	})
+}
+
+export const leaveGame = (localId: string) => (dispatch: Dispatch) => {
+	dispatch({ type: LEAVE_GAME, payload: { localId } })
 }
 
 export const removeErrorFromStore = () => (dispatch: Dispatch) => {

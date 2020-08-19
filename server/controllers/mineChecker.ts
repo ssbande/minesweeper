@@ -1,5 +1,6 @@
 import { IGameDocument } from '../game'
 import { GameScene, CellValue, CellState } from '../helpers/contracts'
+import { openResultGame } from '../helpers/builder';
 
 class MineChecker {
 	/**
@@ -30,21 +31,7 @@ class MineChecker {
 			game.judge = GameScene[`${winnerId}_WON`]
 		}
 
-		// Mark the invalid flags and dig out all the bombs
-		for (let r = 0; r < game.mineField.field.length; r++) {
-			const row = game.mineField.field[r]
-			for (let c = 0; c < row.length; c++) {
-				if (row[c].state === CellState.FLAGGED) {
-					row[c].invalidFlag = row[c].value !== CellValue.BOMB
-				} else {
-					row[c].state = row[c].value === CellValue.BOMB
-						? CellState.DUG
-						: row[c].state
-				}
-			}
-		}
-
-		return game
+		return openResultGame(game)
 	}
 }
 

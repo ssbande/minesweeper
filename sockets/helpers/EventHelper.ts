@@ -75,7 +75,6 @@ export default class EventHelper {
 
   static removePlayerEvent(socket: Socket) {
     const gameId = this.games.findGameByPlayerSocketId(socket.id);
-    console.log('gameId: ', gameId);
     const url = resolveUri(constants.apiEndpoints.removePlayer)({
       gameId,
       id: socket.id

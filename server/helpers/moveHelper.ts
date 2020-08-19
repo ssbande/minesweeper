@@ -2,6 +2,7 @@ import { IGameDocument } from "../game";
 import { CellState, GameScene, GameState, IPlayer, CellValue, IClickedGame } from "./contracts";
 import mineChecker from "../controllers/mineChecker";
 import MineField from '../controllers/mineField'
+import { openResultGame } from "./builder";
 const minefield = new MineField()
 
 export const rightClickMove = (game: IGameDocument,
@@ -143,18 +144,10 @@ const openBombCell = (game: IGameDocument, row: number, col: number, player: IPl
   game.state = GameState.OVER
   game.judge = GameScene[`${1 - +player.id}_WON`]
 
-  // Open up all the cells containing BOMB
-  for (let r = 0; r < game.mineField.field.length; r++) {
-    const row = game.mineField.field[r]
-    for (let c = 0; c < row.length; c++) {
-      if (game.mineField.field[r][c].value === CellValue.BOMB) {
-        game.mineField.field[r][c].state = CellState.DUG
-      }
-    }
-  }
+  game = openResultGame(game)
 
   return {
-    game, 
+    game,
     gameValidity: {
       isValid: true
     }

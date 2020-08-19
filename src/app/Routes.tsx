@@ -28,7 +28,7 @@ const Routes = (props: any) => {
 
   return (
     <div>
-      <Navbar />
+      <Navbar history={props.history}/>
       <PoseGroup>
         <RouteContainer key={props.location.pathname}>
           <Switch>
