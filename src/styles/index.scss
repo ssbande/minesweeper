@@ -1,17 +1,17 @@
-@mixin borders($left-top: white, $right-bottom: #7b7b7b) {
-  border-bottom-color: $right-bottom;
-  border-left-color: $left-top;
-  border-right-color: $right-bottom;
-  border-style: solid;
-  border-top-color: $left-top;
-  border-width: 1px;
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+* {
+  box-sizing: border-box;
+  font-family: 'Ubuntu', sans-serif !important;
 }
 
-@mixin buttons {
-  &:active {
-    border-bottom-color: white;
-    border-left-color: #7b7b7b;
-    border-right-color: white;
-    border-top-color: #7b7b7b;
-  }
+body {
+  margin: 0;
+  font-family: 'Ubuntu', sans-serif;;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }

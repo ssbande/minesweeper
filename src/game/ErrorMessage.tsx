@@ -1,15 +1,8 @@
 import React from 'react'
 import Snackbar from '@material-ui/core/Snackbar'
+import { IErrorProps } from '../utils/contracts'
 
-interface ErrorProps {
-	error: {
-		error: string
-		message: string
-	}
-	removeErrorFromStore: () => void
-}
-
-const ErrorMessage = ({ error, removeErrorFromStore }: ErrorProps) => {
+const ErrorMessage = ({ error, removeErrorFromStore }: IErrorProps) => {
 	const handleClose = (
 		event: React.SyntheticEvent | React.MouseEvent,
 		reason?: string

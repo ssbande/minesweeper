@@ -1,0 +1,23 @@
+@mixin borders($left-top: #ececec, $right-bottom: #e1e1e1	) {
+  border-bottom-color: $right-bottom;
+  border-left-color: $left-top;
+  border-right-color: $right-bottom;
+  border-style: solid;
+  border-top-color: $left-top;
+  border-width: 1px;
+}
+
+@mixin buttons {
+  &:active {
+    border-bottom-color: #ececec;
+    border-left-color: #e1e1e1	;
+    border-right-color: #ececec;
+    border-top-color: #e1e1e1	;
+  }
+}
+
+@mixin centerAlign() {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -9,7 +9,7 @@ export default {
 		PLAYER_NOT_FOUND:
 			'The player is not associated with the game provided. Please check the details.',
 		QUERYING_OLD_GAME:
-			'This game session has been expired. Please check for the current game session',
+			'This game session has been expired. Please start a new game to play again.',
 		BAD_REQUEST:
 			'The request was in an invalid format. Please check the request body',
 		GAME_NOT_STARTED:
@@ -18,7 +18,9 @@ export default {
 		CANT_ALTER_OTHERS_FLAG:
 			'You are not allowed to alter the flag marked by other players',
 		UNMARK_WITH_RIGHT_CLICK:
-			'Right click on the cell to unmark it'
+			'Right click on the cell to unmark it',
+		DIG_DUG_CELL: 
+			'Click on a cell which is not yet digged ... '
 	},
 	GameLevelConfig: {
 		DEFAULT: { maxRows: 5, maxCols: 5, noOfBombs: 4 },

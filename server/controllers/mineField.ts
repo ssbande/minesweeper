@@ -11,7 +11,7 @@ import {
 import Constants from '../helpers/constants'
 
 class MineField {
-	
+
 	/**
 	 * The main orchestrator method to create the new board -  mineField
 	 * @param level Difficulty level of the game
@@ -42,17 +42,13 @@ class MineField {
 		const { maxCols, maxRows, noOfBombs } = config
 
 		// create cells with initial value 
-		cells = Array(maxRows)
-			.fill(null)
-			.map(() => {
-				const cols = Array(maxCols)
-					.fill(null)
-					.map(() => ({
-						value: CellValue.NONE,
-						state: CellState.UNTOUCHED,
-					}))
-				return [...cols]
-			})
+		cells = Array(maxRows).fill(null).map(() => {
+			const cols = Array(maxCols).fill(null).map(() => ({
+				value: CellValue.NONE,
+				state: CellState.UNTOUCHED,
+			}))
+			return [...cols]
+		})
 
 		// Place the bombs randomly in the initialised cells 
 		let bombsPlaced = 0
@@ -68,24 +64,16 @@ class MineField {
 		}
 
 		// Calculate the cell values depending on how many bombs are surrounding it.
-		Array(maxRows)
-			.fill(null)
-			.forEach((r, rowIndex: number) => {
-				Array(maxCols)
-					.fill(null)
-					.forEach((c, colIndex: number) => {
-						const neighbours = this.traverseNeighbours(
-							cells,
-							rowIndex,
-							colIndex
-						)
-						if (cells[rowIndex][colIndex].value !== CellValue.BOMB) {
-							cells[rowIndex][colIndex].value = neighbours.filter(
-								neighbour => neighbour.cell.value === CellValue.BOMB
-							).length
-						}
-					})
+		Array(maxRows).fill(null).forEach((r, rowIndex: number) => {
+			Array(maxCols).fill(null).forEach((c, colIndex: number) => {
+				const neighbours = this.traverseNeighbours(cells, rowIndex, colIndex)
+				if (cells[rowIndex][colIndex].value !== CellValue.BOMB) {
+					cells[rowIndex][colIndex].value = neighbours
+						.filter(neighbour => neighbour.cell.value === CellValue.BOMB)
+						.length
+				}
 			})
+		})
 
 		return {
 			config,
@@ -108,10 +96,8 @@ class MineField {
 	): Cell[][] {
 		const currentCell = field[rowIndex][colIndex]
 
-		if (
-			currentCell.state === CellState.FLAGGED ||
-			currentCell.state === CellState.DUG
-		) {
+		if (currentCell.state === CellState.FLAGGED
+			|| currentCell.state === CellState.DUG) {
 			return field
 		}
 
@@ -145,8 +131,10 @@ class MineField {
 		rowIndex: number,
 		colIndex: number
 	): INeighbours[] {
-		const checkInBounds = ({ x, y }) =>
-			x >= 0 && x < cells.length && y >= 0 && y < cells[0].length
+		const checkInBounds = ({ x, y }) => x >= 0
+			&& x < cells.length
+			&& y >= 0
+			&& y < cells[0].length
 
 		const neighbours = Constants.dx
 			.map((x, i) => ({ dx: x, dy: Constants.dy[i] }))

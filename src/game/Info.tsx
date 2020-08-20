@@ -1,164 +1,107 @@
-import React from 'react'
-import Badge from '@material-ui/core/Badge'
-import Avatar from 'avataaars'
+import React, { useEffect, useState, Fragment } from 'react'
 import {
-	Theme,
-	makeStyles,
-	withStyles,
-	createStyles,
+  Theme,
+  makeStyles,
+  createStyles,
 } from '@material-ui/core/styles'
-import { IPlayer, GameState } from '../utils/contracts'
-
-interface InfoProps {
-	gameId: string
-	player: IPlayer
-	state: GameState
-	judge: string
-	winner: string
-}
-
-const StyledBadge = withStyles((theme: Theme) =>
-	createStyles({
-		badge: {
-			backgroundColor: '#44b700',
-			color: '#44b700',
-			boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
-			'&::after': {
-				position: 'absolute',
-				top: 0,
-				left: 0,
-				width: '100%',
-				height: '100%',
-				borderRadius: '50%',
-				animation: '$ripple 1.2s infinite ease-in-out',
-				border: '1px solid currentColor',
-				content: '""',
-			},
-		},
-		'@keyframes ripple': {
-			'0%': {
-				transform: 'scale(.8)',
-				opacity: 1,
-			},
-			'100%': {
-				transform: 'scale(2.4)',
-				opacity: 0,
-			},
-		},
-	})
-)(Badge)
+import Divider from '@material-ui/core/Divider';
+import { GameState, InfoProps } from '../utils/contracts';
+import Bomb from '../styles/images/bomb.png';
+import Trophy from '../styles/images/trophy.png';
+import Loser from '../styles/images/crying.png';
+import AppTimer from './Timer';
+import Confetti from 'react-dom-confetti';
+import { StyledBadge, avataars } from '../utils/components';
+import Constants from '../utils/constants';
 
 const useStyles = makeStyles((theme: Theme) =>
-	createStyles({
-		root: {
-			display: 'flex',
-			'& > *': {
-				margin: theme.spacing(1),
-			},
-		},
-	})
+  createStyles({
+    root: {
+      display: 'flex',
+      '& > *': {
+        margin: theme.spacing(1),
+      },
+    },
+  })
 )
 
-const avataars = [
-	<Avatar
-		key={0}
-		style={{ width: '100px', height: '100px' }}
-		avatarStyle="Circle"
-		topType="LongHairMiaWallace"
-		accessoriesType="Prescription02"
-		hairColor="BrownDark"
-		facialHairType="Blank"
-		clotheColor="PastelBlue"
-		clotheType="Hoodie"
-		eyeType="Happy"
-		eyebrowType="Default"
-		mouthType="Smile"
-		skinColor="Light"
-	/>,
-	<Avatar
-		key={1}
-		style={{ width: '100px', height: '100px' }}
-		avatarStyle="Circle"
-		topType="ShortHairDreads01"
-		accessoriesType="Prescription02"
-		hairColor="Brown"
-		facialHairType="BeardMedium"
-		facialHairColor="BrownDark"
-		clotheType="BlazerShirt"
-		eyeType="Default"
-		eyebrowType="Default"
-		mouthType="Default"
-		skinColor="Light"
-	/>,
-	<Avatar
-		key={2}
-		style={{ width: '100px', height: '100px' }}
-		avatarStyle="Circle"
-		topType="WinterHat3"
-		accessoriesType="Prescription02"
-		facialHairType="Blank"
-		clotheType="Hoodie"
-		clotheColor="Gray01"
-		eyeType="Default"
-		eyebrowType="Default"
-		mouthType="Tongue"
-		skinColor="Light"
-	/>,
-	<Avatar
-		key={3}
-		style={{ width: '100px', height: '100px' }}
-		avatarStyle="Circle"
-		topType="LongHairStraight"
-		accessoriesType="Kurt"
-		hairColor="Brown"
-		facialHairType="Blank"
-		clotheType="Hoodie"
-		clotheColor="Heather"
-		eyeType="Default"
-		eyebrowType="Default"
-		mouthType="Smile"
-		skinColor="Light"
-	/>,
-]
-
 const Info: React.FC<InfoProps> = ({
-	player,
-	gameId,
-	state,
-	judge,
-	winner,
+  player,
+  gameId,
+  state,
+  judge,
+  winner,
+  time,
+  bombs
 }) => {
-	const classes = useStyles()
-	return (
-		<div className={classes.root}>
-			<StyledBadge
-				overlap="circle"
-				anchorOrigin={{
-					vertical: 'bottom',
-					horizontal: 'right',
-				}}
-				variant="dot"
-			>
-				{avataars[+player.id]}
-			</StyledBadge>
-			{!!player && (
-				<div className="playerInfo">
-					<div>Hello !</div>
-					<div>You are {player.name}</div>
-					{state === GameState.OVER && (
-						<div className="playerWinInfo">
-							{winner === player.id ? (
-								<div>You won !!!</div>
-							) : (
-								<div>You Lost</div>
-							)}
-							{judge === 'DRAW' && <div>It's a draw</div>}
-						</div>
-					)}
-				</div>
-			)}
-		</div>
-	)
+  const [showConfetti, setShowConfetti] = useState(false);
+  useEffect(() => {
+    if (state === GameState.OVER && winner === player.id) {
+      setTimeout(() => setShowConfetti(true), 2000);
+    }
+  }, [state, player, winner])
+
+  const classes = useStyles()
+
+  const renderPlayerWin = () => {
+    if (state !== GameState.OVER) return null;
+    let content = <div>It's a draw !!!</div>
+
+    if (judge !== 'DRAW') {
+      let imgSrc = Loser;
+      let winText = 'You lost ... ';
+      
+      if (winner === player.id) {
+        imgSrc = Trophy;
+        winText = 'You won!!!'
+      }
+
+      content = <Fragment>
+        <div className='explosionInfo' style={{ flexDirection: 'column' }}>
+          <img src={imgSrc} alt="loser" height={45} width={50} />
+          <div>{winText}</div>
+        </div>
+        <Confetti active={showConfetti} config={Constants.confettiConfig} />
+      </Fragment>
+    }
+
+    return <div className="playerWinInfo" style={{ marginTop: 10 }}>
+      {content}
+    </div>
+  }
+  return (
+    <div className='infoContainer'>
+      <div className={classes.root}>
+        <StyledBadge
+          overlap="circle"
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          variant="dot">
+          {avataars[player.avatarId]}
+        </StyledBadge>
+        {!!player && (
+          <div className="playerInfo">
+            <div>Hola !</div>
+            <div>{player.name}</div>
+            {renderPlayerWin()}
+          </div>
+        )}
+      </div>
+      <div className="playerInfo">
+        <div className="playerWinInfo">GAME INFO</div>
+        <div style={{ marginBottom: 5 }}>Room: {gameId}</div>
+        <div style={{ marginBottom: 5 }}>State: {state}</div>
+        <Divider />
+        <div className='infoContainer' style={{ marginTop: 5 }}>
+          <div className='bombInfo'>
+            <img src={Bomb} alt="bomb" height={35} width={35} />
+            {bombs}
+          </div>
+          <AppTimer time={time} />
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default Info
+

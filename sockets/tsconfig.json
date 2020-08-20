@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"sourceMap": true,
+		"module": "commonjs",
+		"esModuleInterop": true,
+		"target": "es6",
+		"moduleResolution": "node",
+		"allowSyntheticDefaultImports": true,
+		"noUnusedLocals": false
+	},
+	"exclude": ["../node_modules"]
+}

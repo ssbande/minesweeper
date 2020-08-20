@@ -1,244 +1,89 @@
-import React, { useEffect, useState, Fragment } from 'react'
-import './App.scss'
-// import './main.scss'
-import { connect } from 'react-redux'
+import React from 'react';
+import { connect } from 'react-redux';
 import {
-	createGame,
-	joinGame,
-	handleStorageChange,
-	removePlayer,
-	makeMove,
-	removeErrorFromStore,
-} from '../state/actions'
-import {
-	IAppState,
-	IAppProps,
-	IGame,
-	GameState,
-	Face,
-} from '../utils/contracts'
-import { Dispatch, bindActionCreators } from 'redux'
-import NumberDisplay from '../game/NumberDisplay'
-import Button from '../game/Button'
-import ErrorMessage from '../game/ErrorMessage'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-import CssBaseline from '@material-ui/core/CssBaseline'
-import Container from '@material-ui/core/Container'
-import Info from '../game/Info'
-import LinearProgress from '@material-ui/core/LinearProgress'
+  onGameCreated,
+  onGameJoined,
+  onMoveMade,
+  onPlayerRemoved,
+  onError,
+  removeErrorFromStore,
+  onPlayer2Joined
+} from '../state/actions';
+import { IAppState, IData, GameType, IGameProps } from '../utils/contracts';
+import { Dispatch, bindActionCreators } from 'redux';
+import Game from '../game/Game'
+import { Message, OutputMessageType, InputMessageType } from '../utils/socketUtils';
+import ConnectionManager from '../utils/connection';
+import getManager from '../utils/socketManager';
 
-function App(props: IAppProps) {
-	const {
-		createGame,
-		joinGame,
-		handleStorageChange,
-		removePlayer,
-		makeMove,
-		removeErrorFromStore,
-		game,
-		me,
-		shouldRemovePlayer,
-		removePlayerId,
-		error,
-	} = props
-	const [winner, setWinner] = useState<string>('')
-	const [face, setFace] = useState<Face>(Face.smile)
-	const [time, setTime] = useState<number>(0)
-	const [live, setLive] = useState<boolean>(false)
+class App extends React.Component<IGameProps, IData> {
+  private conn: ConnectionManager = getManager().getConnectionManager();
+  constructor(props: IGameProps) {
+    super(props);
+    const context = this;
+    const {
+      minesweeper: {
+        me: { name },
+        gameType,
+        gameLevel,
+        joiningGameId
+      }
+    } = this.props;
 
-	const handleMouseDown = (): void => setFace(Face.oh)
-	const handleMouseUp = (): void => setFace(Face.smile)
+    if (gameType === GameType.NEW) {
+      this.conn.send(new Message(OutputMessageType.CREATE_GAME, {
+        name,
+        gameLevel
+      }));
+    } else if (gameType === GameType.JOIN) {
+      this.conn.send(new Message(OutputMessageType.JOIN_GAME, {
+        name,
+        joiningGameId: joiningGameId || ''
+      }));
+    }
 
-	useEffect(() => {
-		window.addEventListener('mousedown', handleMouseDown)
-		window.addEventListener('mouseup', handleMouseUp)
-		window.addEventListener('storage', handleStorageChange)
-		window.addEventListener('beforeunload', e => {
-			if (localStorage.getItem('game')) {
-				localStorage.setItem('removePlayerId', me.id)
-			}
-		})
+    this.conn.subscribe((m: Message) => {
+      console.log(m);
+      switch (m.getType()) {
+        case InputMessageType.GAME_CREATED:
+          this.props.onGameCreated(m);
+          break;
+        case InputMessageType.GAME_JOINED:
+          this.props.onGameJoined(m);
+          break;
+        case InputMessageType.PLAYER2_JOINED:
+          this.props.onPlayer2Joined(m);
+          break;
+        case InputMessageType.MADE_MOVE:
+          this.props.onMoveMade(m);
+          break;
+        case InputMessageType.REMOVED_PLAYER:
+          this.props.onPlayerRemoved(m);
+          break;
+        case InputMessageType.ERROR:
+          this.props.onError(m);
+          break;
+        default:
+          break;
+      }
+      context.forceUpdate();
+    });
+  }
 
-		return () => {
-			window.removeEventListener('mousedown', handleMouseDown)
-			window.removeEventListener('mouseup', handleMouseUp)
-		}
-	})
-
-	useEffect(() => {
-		if (live && time < 999) {
-			const timer = setInterval(() => {
-				setTime(time + 1)
-			}, 1000)
-
-			if (game?.state === GameState.OVER) {
-				clearInterval(timer)
-			}
-			return () => {
-				clearInterval(timer)
-			}
-		}
-	}, [live, time, game])
-
-	useEffect(() => {
-		const localGame = localStorage.getItem('game')
-		if (!localGame) {
-			createGame()
-		} else if (!me.name) {
-			const parsedGame = JSON.parse(localGame) as IGame
-			joinGame(parsedGame.gameId)
-		}
-	}, [createGame, joinGame, me])
-
-	useEffect(() => {
-		if (game.state === GameState.OVER) {
-			localStorage.removeItem('game')
-			localStorage.removeItem('removePlayerId')
-			if (
-				game.players.filter(player => player.isWinner === true).length === 1
-			) {
-				setWinner(
-					game.players.find(player => player.isWinner === true)?.id || ''
-				)
-			}
-		} else if (game.state === GameState.RUNNING) {
-			setLive(true)
-		}
-	}, [game.state, game.players])
-
-	useEffect(() => {
-		if (shouldRemovePlayer && !!removePlayerId) {
-			removePlayer(game.gameId, removePlayerId.toString())
-		}
-	}, [shouldRemovePlayer, removePlayerId, removePlayer, game.gameId])
-
-	const handleFaceClick = () => {
-		// TODO: add restart functionality
-	}
-
-	const handleCellClick = (rowParam: number, colParam: number) => (): void => {
-		makeMove(game.gameId, me.id, rowParam, colParam, false)
-	}
-
-	const handleCellContext = (rowParam: number, colParam: number) => (
-		e: React.MouseEvent<HTMLDivElement, MouseEvent>
-	): void => {
-		e.preventDefault()
-		makeMove(game.gameId, me.id, rowParam, colParam, true)
-	}
-
-	const renderCells = () => {
-		return game?.mineField?.field
-			? game.mineField.field.map((row, rowIndex) =>
-					row.map((cell, colIndex) => (
-						<Button
-							col={colIndex}
-							key={`${rowIndex}-${colIndex}`}
-							onClick={handleCellClick}
-							onContext={handleCellContext}
-							red={cell.exploded}
-							row={rowIndex}
-							state={cell.state}
-							value={cell.value}
-							opponent={me.id === '0' ? game.players[1] : game.players[0]}
-						/>
-					))
-			  )
-			: null
-	}
-
-	return (
-		<Fragment>
-			<AppBar position="static">
-				<Toolbar variant="dense">
-					<Typography variant="h6" color="inherit">
-						Minesweeper - SB
-					</Typography>
-				</Toolbar>
-			</AppBar>
-			<ErrorMessage error={error} removeErrorFromStore={removeErrorFromStore} />
-			<CssBaseline />
-			{!!game.gameId && (
-				<Container maxWidth="sm">
-					<Typography
-						component="div"
-						style={{
-							padding: '20px',
-							backgroundColor: '#cfe8fc',
-							height: '100vh',
-						}}
-					>
-						<Info
-							gameId={game.gameId}
-							player={me}
-							state={game.state}
-							judge={game.judge}
-							winner={winner}
-						/>
-						<div style={{ paddingLeft: '50px', paddingRight: '50px' }}>
-							{game?.state === 'PREPARING' && (
-								<div>
-									<p>Waiting for other component to join ...</p>
-									<LinearProgress />
-								</div>
-							)}
-							<div className="mineFieldContainer">
-								<div className="App">
-									<div className="Header">
-										<NumberDisplay
-											value={game.mineField.noOfBombs - game.totalMarkedFlags}
-										/>
-										<div className="Face" onClick={handleFaceClick}>
-											<span role="img" aria-label="face">
-												{face}
-											</span>
-										</div>
-										<NumberDisplay value={time} />
-									</div>
-									<div className="Body">{renderCells()}</div>
-								</div>
-							</div>
-						</div>
-					</Typography>
-				</Container>
-			)}
-		</Fragment>
-	)
-
-	// 			<div className="Header">
-	// 				<NumberDisplay value={game.mineField.noOfBombs - game.totalMarkedFlags} />
-	// 				<div className="Face" onClick={handleFaceClick}>
-	// 					<span role="img" aria-label="face">
-	// 						{face}
-	// 					</span>
-	// 				</div>
-	// 				<NumberDisplay value={time} />
-	// 			</div>
-	// 			<div className="Body">{renderCells()}</div>
-	// 		</div>
-	// 	</div>
+  public render() {
+    return <Game conn={this.conn} removeErrorFromStore={this.props.removeErrorFromStore} />;
+  }
 }
 
 const actionCreators = {
-	createGame,
-	joinGame,
-	handleStorageChange,
-	removePlayer,
-	makeMove,
-	removeErrorFromStore,
+  onGameCreated,
+  onGameJoined,
+  onMoveMade,
+  onPlayerRemoved,
+  onError,
+  removeErrorFromStore,
+  onPlayer2Joined
 }
-const mapStateToProps = (state: IAppState) => {
-	return {
-		game: state.game,
-		me: state.me,
-		shouldRemovePlayer: state.removePlayer,
-		removePlayerId: state.removePlayerId,
-		error: state.error,
-	}
-}
-const mapDispatchToProps = (dispatch: Dispatch) =>
-	bindActionCreators(actionCreators, dispatch)
-
-export default connect(mapStateToProps, mapDispatchToProps)(App)
+const mapStateToProps = (state: IAppState) => ({ minesweeper: state });
+const mapDispatchToProps = (dispatch: Dispatch) => bindActionCreators(actionCreators, dispatch)
+export default connect(mapStateToProps, mapDispatchToProps)(App);

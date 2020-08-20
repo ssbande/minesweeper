@@ -1,4 +1,22 @@
 import mongoose from 'mongoose'
+import { IGameDocument } from '../game'
+
+export enum ApiParent {
+	CREATE = 'CREATE',
+	JOIN = 'JOIN',
+	MOVE = 'MOVE',
+	REMOVE = 'REMOVE'
+}
+
+export interface IValidateGame {
+	isValid: boolean;
+	error?: GameScene;
+}
+
+export interface IClickedGame {
+  game: IGameDocument,
+  gameValidity: IValidateGame
+}
 
 export enum GameState {
 	PREPARING = 'PREPARING',
@@ -8,6 +26,7 @@ export enum GameState {
 
 export enum GameScene {
 	BAD_REQUEST = 'BAD_REQUEST',
+	DIG_DUG_CELL = 'DIG_DUG_CELL',
 	GAME_NOT_STARTED = 'GAME_NOT_STARTED',
 	QUERYING_OLD_GAME = 'QUERYING_OLD_GAME',
 	PLAYER_NOT_FOUND = 'PLAYER_NOT_FOUND',
@@ -20,6 +39,7 @@ export enum GameScene {
 	ALREADY_MARKED = 'ALREADY_MARKED',
 	MARK_AFTER_GAME_OVER = 'MARK_AFTER_GAME_OVER',
 	DRAW = 'DRAW',
+	OPPONENT_LEFT = 'OPPONENT_LEFT',
 	'0_WON' = 'PLAYER1 WON',
 	'1_WON' = 'PLAYER2 WON',
 }
@@ -33,9 +53,11 @@ export interface ICellPosition {
 export interface IPlayer {
 	id: string
 	name: string
+	localId: string
 	flagCount: number
 	flagPositions: ICellPosition[]
 	isWinner: boolean
+	avatarId: number
 }
 
 export enum CellValue {
@@ -62,6 +84,7 @@ export type Cell = {
 	value: CellValue
 	state: CellState
 	exploded?: boolean
+	invalidFlag?: boolean
 }
 
 export interface IPoint {
@@ -101,6 +124,7 @@ export const cellSchema = new mongoose.Schema({
 	value: { type: Number, required: true },
 	state: { type: String, required: true },
 	exploded: { type: Boolean, required: false },
+	invalidFlag: { type: Boolean, required: false },
 })
 
 export const mineFieldSchema = new mongoose.Schema({
@@ -124,8 +148,10 @@ export const GameSchema = new mongoose.Schema({
 	judge: { type: String, required: true },
 	players: [
 		{
+			avatarId: Number,
 			id: String,
 			name: String,
+			localId: String,
 			flagCount: Number,
 			isWinner: Boolean,
 			flagPositions: [
